@@ -3,109 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S2-LIBRARY | Professional Library System</title>
+    <title>S2-LIBRARY | Professional System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         .tab-active { background: #0f172a !important; color: white !important; }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
-        .input-premium { border: 1px solid #e2e8f0; transition: all 0.3s; }
-        .input-premium:focus { border-color: #0f172a; box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.1); }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; }
     </style>
 </head>
-<body class="text-slate-900 overflow-x-hidden">
+<body class="text-slate-900">
 
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl font-bold text-white text-xs uppercase tracking-widest transition-all duration-500 opacity-0 pointer-events-none"></div>
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl shadow-2xl font-black text-white text-[10px] tracking-widest transition-all duration-500 opacity-0 pointer-events-none"></div>
 
     <section id="login-page" class="fixed inset-0 z-[90] bg-slate-900 flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[32px] w-full max-w-md shadow-2xl">
-            <h2 class="text-center text-2xl font-extrabold tracking-tighter mb-8 text-slate-900">SYSTEM AUTHORIZATION</h2>
+        <div class="bg-white p-10 rounded-[32px] w-full max-w-md shadow-2xl text-center">
+            <h2 class="text-2xl font-black tracking-tighter mb-8">ADMIN ACCESS</h2>
             <div class="space-y-4">
-                <input type="text" id="l-user" placeholder="Admin Username" class="w-full p-4 rounded-2xl input-premium font-medium">
-                <input type="password" id="l-pass" placeholder="Password" class="w-full p-4 rounded-2xl input-premium font-medium">
-                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition shadow-lg">Login</button>
+                <input type="text" id="l-user" placeholder="Username" class="w-full p-4 rounded-2xl border font-bold">
+                <input type="password" id="l-pass" placeholder="Password" class="w-full p-4 rounded-2xl border font-bold">
+                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest">Login</button>
             </div>
         </div>
     </section>
 
-    <section id="dashboard" class="hidden opacity-0 transition-opacity duration-1000">
-        <header class="p-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-40 border-b">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black">S2</div>
-                <h1 class="font-extrabold text-sm tracking-tight uppercase">SMAN 2 Cikarang Barat</h1>
-            </div>
-            <button onclick="logout()" class="text-xs font-bold text-red-500 uppercase tracking-widest px-4 py-2 hover:bg-red-50 rounded-full transition">Log Out</button>
+    <section id="dashboard" class="hidden opacity-0 transition-all duration-700">
+        <header class="p-6 flex justify-between items-center bg-white border-b sticky top-0 z-40">
+            <div class="font-black text-xs uppercase tracking-tighter">SMAN 2 CIKARANG BARAT</div>
+            <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase">Logout</button>
         </header>
 
-        <nav class="flex justify-center mt-8 mb-12 gap-2 max-w-xl mx-auto p-1.5 bg-slate-200 rounded-2xl">
-            <button onclick="tab('buku')" id="btn-buku" class="tab-btn flex-1 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">Inventaris</button>
-            <button onclick="tab('anggota')" id="btn-anggota" class="tab-btn flex-1 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">Anggota</button>
-            <button onclick="tab('sirkulasi')" id="btn-sirkulasi" class="tab-btn flex-1 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">Sirkulasi</button>
+        <nav class="flex justify-center my-8 gap-2 max-w-md mx-auto p-1.5 bg-slate-200 rounded-2xl">
+            <button onclick="tab('buku')" id="btn-buku" class="tab-btn flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all">Inventaris</button>
+            <button onclick="tab('anggota')" id="btn-anggota" class="tab-btn flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all">Anggota</button>
+            <button onclick="tab('sirkulasi')" id="btn-sirkulasi" class="tab-btn flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all">Sirkulasi</button>
         </nav>
 
         <main class="container mx-auto px-6 max-w-6xl pb-20">
-            <div id="view-buku" class="hidden space-y-8">
-                <div class="glass-card p-8 rounded-[32px]">
-                    <h3 class="font-black text-xs uppercase text-slate-400 mb-6 flex items-center gap-2"><span class="w-4 h-1 bg-slate-900 rounded-full"></span> Registrasi Buku Baru</h3>
-                    <form id="form-buku" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="md:col-span-2"><label class="text-[10px] font-black uppercase mb-2 block opacity-50">Judul Buku</label><input type="text" id="b-judul" class="w-full p-4 rounded-xl input-premium font-bold" required></div>
-                        <div><label class="text-[10px] font-black uppercase mb-2 block opacity-50">Pengarang</label><input type="text" id="b-pgr" class="w-full p-4 rounded-xl input-premium font-bold" required></div>
-                        <div><label class="text-[10px] font-black uppercase mb-2 block opacity-50">ISBN</label><input type="text" id="b-isbn" class="w-full p-4 rounded-xl input-premium font-bold"></div>
-                        <div><label class="text-[10px] font-black uppercase mb-2 block opacity-50">Klasifikasi</label><select id="b-klas" class="w-full p-4 rounded-xl input-premium font-bold"><option value="000">000 - Umum</option><option value="500">500 - Sains</option><option value="800">800 - Fiksi</option></select></div>
-                        <div><label class="text-[10px] font-black uppercase mb-2 block opacity-50">Stok</label><input type="number" id="b-stok" value="1" class="w-full p-4 rounded-xl input-premium font-bold"></div>
-                        <div class="md:col-span-2 flex items-end"><button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-slate-800 shadow-xl transition">Simpan ke D1 Database</button></div>
+            <div id="view-buku" class="hidden space-y-6">
+                <div class="glass p-8 rounded-[32px]">
+                    <form id="form-buku" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="b-judul" placeholder="JUDUL BUKU" class="md:col-span-2 p-4 rounded-xl border font-bold uppercase" required>
+                        <input type="text" id="b-pgr" placeholder="PENGARANG" class="p-4 rounded-xl border font-bold" required>
+                        <input type="text" id="b-isbn" placeholder="ISBN" class="p-4 rounded-xl border font-bold">
+                        <select id="b-klas" class="p-4 rounded-xl border font-bold"><option value="000">000 - UMUM</option><option value="500">500 - SAINS</option><option value="800">800 - FIKSI</option></select>
+                        <input type="number" id="b-stok" value="1" class="p-4 rounded-xl border font-bold">
+                        <button type="submit" class="md:col-span-2 bg-slate-900 text-white rounded-xl font-black uppercase text-xs">Simpan Buku</button>
                     </form>
                 </div>
-                <div class="glass-card rounded-[32px] overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b font-black text-[10px] text-slate-400 uppercase tracking-widest"><tr><th class="p-6">ID & Koleksi</th><th>Judul & Pengarang</th><th class="text-center">Status</th></tr></thead>
-                        <tbody id="tbl-buku" class="divide-y text-sm font-medium"></tbody>
+                <div class="glass rounded-[32px] overflow-hidden">
+                    <table class="w-full text-left text-sm font-bold">
+                        <thead class="bg-slate-50 border-b text-[10px] uppercase text-slate-400 font-black"><tr><th class="p-6">Kode</th><th>Judul</th><th class="text-center">Status</th></tr></thead>
+                        <tbody id="tbl-buku" class="divide-y"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="view-sirkulasi" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div class="space-y-6">
-                    <div class="glass-card p-8 rounded-[32px]">
-                        <h3 class="font-black text-xs uppercase text-slate-400 mb-6">Scanning Station</h3>
-                        <div id="reader" class="rounded-3xl overflow-hidden border-8 border-slate-50 shadow-inner bg-black"></div>
-                        <div class="mt-6 flex gap-2">
-                            <input type="text" id="manual-nis" placeholder="Input Manual NIS..." class="flex-1 p-4 rounded-xl input-premium font-bold text-sm">
-                            <button onclick="checkAng(document.getElementById('manual-nis').value)" class="bg-slate-900 text-white px-6 rounded-xl font-bold text-xs uppercase">Cek</button>
-                        </div>
+            <div id="view-sirkulasi" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass p-8 rounded-[32px]">
+                    <div id="reader" class="rounded-2xl overflow-hidden bg-black mb-6"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-nis" placeholder="NIS Anggota..." class="flex-1 p-4 rounded-xl border font-bold">
+                        <button onclick="checkAng(document.getElementById('manual-nis').value)" class="bg-slate-900 text-white px-6 rounded-xl font-black text-xs uppercase">Cek</button>
                     </div>
                 </div>
                 <div class="space-y-6">
-                    <div class="glass-card p-8 rounded-[32px] border-t-8 border-slate-900">
-                        <div id="ang-profile" class="text-center space-y-2 mb-8 hidden">
-                            <h2 id="ang-nama" class="text-2xl font-black uppercase"></h2>
-                            <p id="ang-meta" class="text-xs font-bold text-slate-400 uppercase tracking-widest"></p>
+                    <div class="glass p-8 rounded-[32px] border-t-8 border-slate-900">
+                        <div id="ang-profile" class="text-center mb-6 hidden">
+                            <h2 id="ang-nama" class="text-xl font-black uppercase"></h2>
+                            <p id="ang-meta" class="text-[10px] font-bold text-slate-400"></p>
                         </div>
-                        <div id="loan-slots" class="space-y-3">
-                            <div class="p-6 bg-slate-50 rounded-2xl border-2 border-dashed text-center text-slate-300 font-bold italic text-xs">Menunggu Identifikasi Anggota...</div>
-                        </div>
+                        <div id="loan-slots" class="space-y-3"></div>
                     </div>
-                    <div id="loan-confirm" class="hidden glass-card p-8 rounded-[32px] bg-slate-900 text-white shadow-2xl">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-[0.2em]">Konfirmasi Pinjaman</h3>
+                    <div id="loan-confirm" class="hidden glass p-8 rounded-[32px] bg-slate-900 text-white shadow-2xl">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Konfirmasi Pinjam</h3>
                         <p id="confirm-judul" class="text-lg font-bold mb-4"></p>
                         <input type="date" id="batas-tgl" class="w-full p-4 rounded-xl text-slate-900 font-bold mb-4">
-                        <button onclick="executePinjam()" class="w-full bg-blue-600 py-4 rounded-xl font-black uppercase text-xs">Otorisasi Pinjam</button>
+                        <button onclick="executePinjam()" class="w-full bg-blue-600 py-4 rounded-xl font-black uppercase text-xs">Proses Pinjaman</button>
                     </div>
                 </div>
             </div>
 
-            <div id="view-anggota" class="hidden space-y-8">
-                <div class="glass-card p-8 rounded-[32px]">
+            <div id="view-anggota" class="hidden space-y-6">
+                <div class="glass p-8 rounded-[32px]">
                     <form id="form-anggota" class="flex flex-wrap gap-4">
-                        <input type="text" id="a-nis" placeholder="NIS" class="flex-1 p-4 rounded-xl input-premium font-bold" required>
-                        <input type="text" id="a-nama" placeholder="Nama Lengkap" class="flex-[2] p-4 rounded-xl input-premium font-bold uppercase" required>
-                        <input type="text" id="a-kls" placeholder="Kelas" class="flex-1 p-4 rounded-xl input-premium font-bold" required>
-                        <button type="submit" class="bg-slate-900 text-white px-10 rounded-xl font-black uppercase text-xs transition hover:bg-slate-800">Daftar</button>
+                        <input type="text" id="a-nis" placeholder="NIS" class="flex-1 p-4 rounded-xl border font-bold" required>
+                        <input type="text" id="a-nama" placeholder="NAMA LENGKAP" class="flex-[2] p-4 rounded-xl border font-bold uppercase" required>
+                        <input type="text" id="a-kls" placeholder="KELAS" class="flex-1 p-4 rounded-xl border font-bold" required>
+                        <button type="submit" class="bg-slate-900 text-white px-10 rounded-xl font-black uppercase text-xs">Daftar</button>
                     </form>
                 </div>
-                <div id="tbl-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                <div id="tbl-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
             </div>
         </main>
     </section>
