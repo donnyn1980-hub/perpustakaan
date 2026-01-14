@@ -1,85 +1,74 @@
-// URL Worker Anda sesuai informasi sebelumnya
 const API_URL = "https://perpustakaan.donnyn1980.workers.dev/api";
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("Aplikasi Siap");
-    loadBuku();
-});
+document.addEventListener('DOMContentLoaded', loadBuku);
 
 document.getElementById('formBuku').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log("Mengirim data...");
     
     const data = {
         kode_panggil: document.getElementById('kode_panggil').value,
         klasifikasi: document.getElementById('klasifikasi').value,
         pengarang: document.getElementById('pengarang').value,
         judul: document.getElementById('judul').value,
-        isbn: document.getElementById('isbn').value || "",
+        isbn: document.getElementById('isbn').value,
         stok: 1
     };
 
     try {
-        const res = await fetch(API_URL + '/buku', {
+        const response = await fetch(API_URL + '/buku', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
-        const result = await res.json();
-
-        if (res.ok) {
-            alert('✅ Berhasil: Buku "' + data.judul + '" telah disimpan!');
+        if (response.ok) {
+            alert('✅ Berhasil menyimpan buku!');
             document.getElementById('formBuku').reset();
             loadBuku();
         } else {
-            alert('❌ Gagal: ' + (result.error || 'Terjadi kesalahan pada server'));
+            const errorData = await response.json();
+            alert('❌ Gagal: ' + errorData.error);
         }
     } catch (err) {
-        console.error(err);
-        alert('❌ Koneksi Gagal: Tidak dapat terhubung ke Worker. Pastikan URL benar.');
+        alert('❌ Error Koneksi: Pastikan Worker sudah di-deploy.');
     }
 });
 
 async function loadBuku() {
     const listDiv = document.getElementById('listBuku');
     try {
-        const res = await fetch(API_URL + '/buku');
-        if (!res.ok) throw new Error('Gagal memuat data');
+        const response = await fetch(API_URL + '/buku');
+        const books = await response.json();
         
-        const books = await res.json();
         if (books.length === 0) {
-            listDiv.innerHTML = '<p>Belum ada data buku.</p>';
+            listDiv.innerHTML = '<p>Belum ada koleksi buku.</p>';
             return;
         }
 
-        let html = '<table><thead><tr><th>Kode Lengkap</th><th>Judul</th><th>Pengarang</th><th>Aksi</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>Kode Lengkap</th><th>Judul</th><th>Aksi</th></tr></thead><tbody>';
         books.forEach(b => {
-            const kodeLengkap = b.kode_panggil + '.' + b.klasifikasi + '.' + b.kode_pengarang + '.' + b.kode_judul + '.' + (b.kode_koleksi || 'C.1');
+            const kodeLengkap = b.kode_panggil + '.' + b.klasifikasi + '.' + b.kode_pengarang + '.' + b.kode_judul + '.' + b.kode_koleksi;
             html += '<tr>' +
                 '<td><strong>' + kodeLengkap + '</strong></td>' +
-                '<td>' + b.judul + '</td>' +
-                '<td>' + b.pengarang + '</td>' +
+                '<td>' + b.judul + '<br><small>Oleh: ' + b.pengarang + '</small></td>' +
                 '<td><button onclick="hapusBuku(' + b.id + ')" class="btn btn-delete">Hapus</button></td>' +
             '</tr>';
         });
         listDiv.innerHTML = html + '</tbody></table>';
     } catch (err) {
-        listDiv.innerHTML = '<p style="color:red;">Gagal memuat daftar buku.</p>';
+        listDiv.innerHTML = '<p style="color:red">Gagal mengambil data dari server.</p>';
     }
 }
 
 async function hapusBuku(id) {
-    if (!confirm('Apakah Anda yakin ingin menghapus buku ini?')) return;
+    if (!confirm('Hapus buku ini?')) return;
     try {
-        const res = await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
-        if (res.ok) {
-            alert('✅ Buku berhasil dihapus');
+        const response = await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
+        if (response.ok) {
+            alert('✅ Terhapus');
             loadBuku();
-        } else {
-            alert('❌ Gagal menghapus buku');
         }
     } catch (err) {
-        alert('❌ Error: ' + err.message);
+        alert('Gagal menghapus');
     }
 }
