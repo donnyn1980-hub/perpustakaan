@@ -7,6 +7,60 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('searchInput').addEventListener('input', filterBuku);
 });
 
+function generateKodePengarang() {
+    const pengarang = document.getElementById('pengarang').value;
+    const kode = pengarang.trim().length >= 3 ? pengarang.substring(0, 3).toUpperCase() : '-';
+    document.getElementById('kodePengarangDisplay').textContent = kode;
+    return kode;
+}
+
+function generateKodeJudul() {
+    const judul = document.getElementById('judul').value;
+    const kode = judul.trim().length > 0 ? judul.trim().charAt(0).toLowerCase() : '-';
+    document.getElementById('kodeJudulDisplay').textContent = kode;
+    return kode;
+}
+
+document.getElementById('formBuku').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    
+    try {
+        const buku = {
+            kode_panggil: document.getElementById('kode_panggil').value,
+            klasifikasi: document.getElementById('klasifikasi').value,
+            pengarang: document.getElementById('pengarang').value,
+            kode_pengarang: generateKodePengarang(),
+            judul: document.getElementById('judul').value,
+            kode_judul: generateKodeJudul(),
+            isbn: document.getElementById('isbn').value || null,
+            penerbit: document.getElementById('penerbit').value || null,
+            tahun_terbit: document.getElementById('tahun_terbit').value || null,
+            stok: parseInt(document.getElementById('stok').value) || 1
+        };
+
+        const response = await fetch(`${API_URL}/buku`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(buku)
+        });
+
+        if (response.ok) {
+            showMessage('success', '✅ Buku berhasil ditambahkan!');
+            loadBuku();
+            resetForm();
+        } else {
+            const result = await response.json();
+            throw new Error(result.error || 'Gagal menambahkan buku');
+        }
+    } catch (error) {
+        showMessage('error', `❌ Error: ${error.message}`);
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
+
 async function loadBuku() {
     const container = document.getElementById('booksContainer');
     container.innerHTML = '<div class="loading">Memuat data buku...</div>';
@@ -20,14 +74,33 @@ async function loadBuku() {
     }
 }
 
+function displayBooks(books) {
+    const container = document.getElementById('booksContainer');
+    if (!books || books.length === 0) {
+        container.innerHTML = '<div class="loading">Belum ada data buku.</div>';
+        return;
+    }
+    let html = `<table class="books-table"><thead><tr><th>Kode Lengkap</th><th>Judul</th><th>Stok</th><th>Aksi</th></tr></thead><tbody>`;
+    books.forEach(book => {
+        const kodeFull = `${book.kode_panggil}.${book.klasifikasi}.${book.kode_pengarang}.${book.kode_judul}.${book.kode_koleksi || 'C.1'}`;
+        html += `<tr>
+            <td><strong>${kodeFull}</strong></td>
+            <td>${book.judul}<br><small>${book.pengarang}</small></td>
+            <td><span class="status-badge ${book.stok > 0 ? 'status-available' : 'status-unavailable'}">${book.stok}</span></td>
+            <td><button onclick="hapusBuku(${book.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button></td>
+        </tr>`;
+    });
+    container.innerHTML = html + `</tbody></table>`;
+}
+
 async function hapusBuku(id) {
     if (!confirm('Hapus buku ini?')) return;
     try {
         const response = await fetch(`${API_URL}/buku/${id}`, { method: 'DELETE' });
         
-        // Cek jika respon memiliki konten sebelum parse JSON
-        let result = {};
+        // Memastikan respon ada isinya sebelum memanggil .json()
         const contentType = response.headers.get("content-type");
+        let result = {};
         if (contentType && contentType.includes("application/json")) {
             result = await response.json();
         }
@@ -43,67 +116,23 @@ async function hapusBuku(id) {
     }
 }
 
-// Fungsi generateKodePengarang, generateKodeJudul, displayBooks, dll 
-// Tetap sama persis dengan kode sebelumnya (tanpa pengurangan teks/fitur)
-function generateKodePengarang() {
-    const pengarang = document.getElementById('pengarang').value;
-    if (pengarang.trim().length >= 3) {
-        const kode = pengarang.substring(0, 3).toUpperCase();
-        document.getElementById('kodePengarangDisplay').textContent = kode;
-        return kode;
-    }
-    document.getElementById('kodePengarangDisplay').textContent = '-';
-    return '';
-}
-
-function generateKodeJudul() {
-    const judul = document.getElementById('judul').value;
-    if (judul.trim().length > 0) {
-        const firstLetter = judul.trim().charAt(0).toLowerCase();
-        document.getElementById('kodeJudulDisplay').textContent = firstLetter;
-        return firstLetter;
-    }
-    document.getElementById('kodeJudulDisplay').textContent = '-';
-    return '';
-}
-
-function displayBooks(books) {
-    const container = document.getElementById('booksContainer');
-    if (!books || books.length === 0) {
-        container.innerHTML = '<div class="loading">Belum ada data buku.</div>';
-        return;
-    }
-    let html = `<table class="books-table">
-        <thead><tr><th>Kode Lengkap</th><th>Judul</th><th>Pengarang</th><th>Klasifikasi</th><th>Stok</th><th>Aksi</th></tr></thead>
-        <tbody>`;
-    books.forEach(book => {
-        const kodeLengkap = `${book.kode_panggil}.${book.klasifikasi}.${book.kode_pengarang}.${book.kode_judul}.${book.kode_koleksi || 'C.1'}`;
-        html += `<tr>
-            <td><strong>${kodeFull}</strong></td>
-            <td>${book.judul}</td>
-            <td>${book.pengarang}</td>
-            <td>${getKlasifikasiName(book.klasifikasi)}</td>
-            <td><span class="status-badge ${book.stok > 0 ? 'status-available' : 'status-unavailable'}">${book.stok}</span></td>
-            <td><button onclick="hapusBuku(${book.id})" class="btn-delete">Hapus</button></td>
-        </tr>`;
+function filterBuku() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.books-table tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
-    container.innerHTML = html + `</tbody></table>`;
 }
 
-// Fungsi getKlasifikasiName, showMessage, resetForm (Sesuai kode awal Anda)
-function getKlasifikasiName(code) {
-    const klasifikasiMap = {
-        '000': '000 (Komputer)', '100': '100 (Filsafat)', '200': '200 (Agama)', '300': '300 (Sosial)',
-        '400': '400 (Bahasa)', '500': '500 (Sains)', '600': '600 (Teknologi)', '700': '700 (Seni)',
-        '800': '800 (Sastra)', '900': '900 (Sejarah)'
-    };
-    return klasifikasiMap[code] || code;
+function resetForm() {
+    document.getElementById('formBuku').reset();
+    document.getElementById('kodePengarangDisplay').textContent = '-';
+    document.getElementById('kodeJudulDisplay').textContent = '-';
 }
 
 function showMessage(type, message) {
-    const messageDiv = document.getElementById('message');
-    messageDiv.className = type;
-    messageDiv.textContent = message;
-    messageDiv.style.display = 'block';
-    setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+    const div = document.getElementById('message');
+    div.className = type;
+    div.textContent = message;
+    div.style.display = 'block';
+    setTimeout(() => { div.style.display = 'none'; }, 5000);
 }
