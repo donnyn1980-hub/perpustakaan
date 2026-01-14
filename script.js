@@ -1,229 +1,159 @@
 const API_URL = 'https://perpustakaan.donnyn1980.workers.dev/api';
 let currentAuth = localStorage.getItem('perpus_auth');
+let html5QrCode;
+let selectedAnggota = null;
+let selectedBuku = null;
 
-// --- SISTEM AUTENTIKASI ---
+// Auth Check
 if (!currentAuth) {
-    const user = prompt("Username Admin:");
-    const pass = prompt("Password Admin:");
+    const user = prompt("Admin User:");
+    const pass = prompt("Admin Pass:");
     currentAuth = btoa(user + ':' + pass);
     localStorage.setItem('perpus_auth', currentAuth);
 }
 
-function logout() {
-    localStorage.removeItem('perpus_auth');
+function logout() { localStorage.removeItem('perpus_auth'); location.reload(); }
+
+function openTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.className = "tab-btn px-6 py-2 rounded-md font-medium transition");
+    document.getElementById(name).classList.add('active');
+    document.getElementById('btn-'+name).classList.add('bg-blue-600', 'text-white');
+    if(name==='buku') loadBuku();
+    if(name==='anggota') loadAnggota();
+}
+
+// --- SCANNER LOGIC ---
+function startScan(type) {
+    if(html5QrCode) html5QrCode.stop();
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+    (decodedText) => {
+        html5QrCode.stop();
+        if(type === 'anggota') handleScanAnggota(decodedText);
+        else handleScanBuku(decodedText);
+    });
+}
+
+async function handleScanAnggota(no) {
+    const res = await fetch(`${API_URL}/anggota/cek?q=${no}`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
+    const data = await res.json();
+    if(!data) return alert("Anggota tidak ditemukan!");
+    
+    selectedAnggota = data;
+    document.getElementById('p-detail-anggota').innerHTML = `<div class="text-blue-800 font-bold">${data.nama_lengkap}</div><div class="text-xs">${data.nomor_anggota} - ${data.kelas}</div>`;
+    
+    // Tampilkan Slot Pinjaman
+    const slots = ['pinjaman1', 'pinjaman2', 'pinjaman3'];
+    let html = "";
+    slots.forEach((s, i) => {
+        if(data[s]) {
+            const b = JSON.parse(data[s]);
+            html += `<div class="p-3 border-l-4 border-red-500 bg-red-50 rounded flex justify-between items-center">
+                <div class="text-xs">
+                    <b>${b.judul}</b><br>${b.kode_buku} | Batas: ${b.batas_kembali}
+                </div>
+                <button onclick="kembalikanBuku('${data.nomor_anggota}', '${b.kode_buku}', '${s}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px]">KEMBALI</button>
+            </div>`;
+        } else {
+            html += `<div class="p-3 border border-dashed rounded bg-gray-50 text-xs text-gray-400 italic">Slot ${i+1}: Kosong</div>`;
+        }
+    });
+    document.getElementById('p-list-pinjaman').innerHTML = html;
+}
+
+async function handleScanBuku(kode) {
+    if(!selectedAnggota) return alert("Scan Anggota terlebih dahulu!");
+    const res = await fetch(`${API_URL}/buku/cek?q=${kode}`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
+    const data = await res.json();
+    
+    if(!data || data.status !== 'Tersedia (SR)') return alert("Buku tidak tersedia untuk dipinjam!");
+    
+    selectedBuku = data;
+    document.getElementById('form-pinjam-final').classList.remove('hidden');
+    document.getElementById('p-detail-buku').innerHTML = `<b>${data.judul}</b><br><span class="text-xs">${data.kode_buku}</span>`;
+}
+
+async function submitPinjaman() {
+    const batas = document.getElementById('p-batas').value;
+    if(!batas) return alert("Isi batas kembali!");
+    
+    const body = {
+        kode_peminjaman: 'PJ-' + Date.now(),
+        nomor_anggota: selectedAnggota.nomor_anggota,
+        kode_buku: selectedBuku.kode_buku,
+        judul: selectedBuku.judul,
+        pengarang: selectedBuku.pengarang,
+        batas_kembali: batas
+    };
+
+    const res = await fetch(`${API_URL}/sirkulasi`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth },
+        body: JSON.stringify(body)
+    });
+    
+    if(res.ok) {
+        alert("Peminjaman Berhasil!");
+        location.reload();
+    } else {
+        const err = await res.json();
+        alert(err.error);
+    }
+}
+
+async function kembalikanBuku(noAnggota, kdBuku, slotName) {
+    if(!confirm("Proses Pengembalian?")) return;
+    const res = await fetch(`${API_URL}/kembali/0`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth },
+        body: JSON.stringify({ nomor_anggota: noAnggota, kode_buku: kdBuku, slot: slotName })
+    });
+    const data = await res.json();
+    alert("Berhasil dikembalikan. Denda: Rp" + data.denda);
     location.reload();
 }
 
-// --- LOGIKA TAB ---
-function openTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-blue-600', 'text-white'));
-    document.getElementById(tabName).classList.add('active');
-    document.getElementById('btn-' + tabName).classList.add('bg-blue-600', 'text-white');
-    
-    if(tabName === 'buku') loadBuku();
-    if(tabName === 'anggota') loadAnggota();
-    if(tabName === 'sirkulasi') loadSirkulasi();
+// --- LOAD DATA (Sama seperti sebelumnya) ---
+async function loadBuku() {
+    const res = await fetch(`${API_URL}/buku`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
+    const data = await res.json();
+    document.getElementById('list-buku').innerHTML = data.map(b => `<tr><td class="p-2 border">${b.kode_buku}</td><td class="p-2 border">${b.judul}</td><td class="p-2 border">${b.status}</td></tr>`).join('');
 }
 
-// --- MANAJEMEN BUKU ---
-async function loadBuku() {
-    try {
-        const res = await fetch(`${API_URL}/buku`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
-        const data = await res.json();
-        const list = document.getElementById('list-buku');
-        list.innerHTML = data.map(b => `
-            <tr class="hover:bg-gray-50">
-                <td class="p-2 border font-mono font-bold">${b.kode_buku}</td>
-                <td class="p-2 border">${b.judul}</td>
-                <td class="p-2 border">${b.pengarang}</td>
-                <td class="p-2 border">
-                    <span class="px-2 py-1 rounded text-xs font-bold ${b.status.includes('Tersedia') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                        ${b.status}
-                    </span>
-                </td>
-            </tr>
-        `).join('');
-    } catch (e) { console.error("Error load buku:", e); }
+async function loadAnggota() {
+    const res = await fetch(`${API_URL}/anggota`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
+    const data = await res.json();
+    document.getElementById('list-anggota-wrapper').innerHTML = `<table class="w-full border"><thead><tr class="bg-gray-100"><th class="p-2 border">NIS</th><th class="p-2 border">Nama</th><th class="p-2 border">Pinjaman Aktif</th></tr></thead><tbody>${data.map(a => {
+        let count = [a.pinjaman1, a.pinjaman2, a.pinjaman3].filter(x => x).length;
+        return `<tr><td class="p-2 border">${a.nomor_anggota}</td><td class="p-2 border">${a.nama_lengkap}</td><td class="p-2 border">${count} Buku</td></tr>`;
+    }).join('')}</tbody></table>`;
 }
 
 document.getElementById('form-buku').onsubmit = async (e) => {
     e.preventDefault();
-    const data = {
+    const body = {
         klasifikasi: document.getElementById('b_klasifikasi').value,
         kategori: document.getElementById('b_kategori').value,
         pengarang: document.getElementById('b_pengarang').value,
         judul: document.getElementById('b_judul').value,
         stok: document.getElementById('b_stok').value,
-        isbn: document.getElementById('b_isbn').value,
-        penerbit: document.getElementById('b_penerbit').value,
-        tahun_terbit: document.getElementById('b_tahun').value
+        isbn: document.getElementById('b_isbn').value
     };
-    await fetch(`${API_URL}/buku`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth },
-        body: JSON.stringify(data)
-    });
-    alert('Buku Berhasil Disimpan!');
-    loadBuku();
-    e.target.reset();
-    updateKategori();
+    await fetch(`${API_URL}/buku`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth }, body: JSON.stringify(body) });
+    alert("Buku disimpan!"); loadBuku();
 };
-
-function updateKategori() {
-    const dd = { 
-        "000": "Karya Umum", "100": "Filsafat", "200": "Agama", 
-        "300": "Ilmu Sosial", "400": "Bahasa", "500": "Sains", 
-        "600": "Teknologi", "700": "Seni & Olahraga", 
-        "800": "Fiksi / Sastra", "900": "Sejarah" 
-    };
-    document.getElementById('b_kategori').value = dd[document.getElementById('b_klasifikasi').value];
-}
-
-// --- MANAJEMEN ANGGOTA ---
-async function loadAnggota() {
-    try {
-        const res = await fetch(`${API_URL}/anggota`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
-        const data = await res.json();
-        const list = document.getElementById('list-anggota-wrapper');
-        list.innerHTML = `
-            <table class="w-full text-sm text-left border">
-                <thead class="bg-gray-200">
-                    <tr><th class="p-2 border">NIS</th><th class="p-2 border">Nama</th><th class="p-2 border">Kelas</th><th class="p-2 border">Status</th></tr>
-                </thead>
-                <tbody>
-                    ${data.map(a => `
-                        <tr>
-                            <td class="p-2 border">${a.nomor_anggota}</td>
-                            <td class="p-2 border">${a.nama_lengkap}</td>
-                            <td class="p-2 border">${a.kelas}</td>
-                            <td class="p-2 border font-bold ${a.status_anggota === 'AKTIF' ? 'text-green-600' : 'text-red-600'}">${a.status_anggota}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>`;
-    } catch (e) { console.error("Error load anggota:", e); }
-}
 
 document.getElementById('form-anggota').onsubmit = async (e) => {
     e.preventDefault();
-    const data = {
-        nomor_anggota: document.getElementById('a_nomor').value,
-        nama_lengkap: document.getElementById('a_nama').value,
-        kelas: document.getElementById('a_kelas').value
-    };
-    await fetch(`${API_URL}/anggota`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth },
-        body: JSON.stringify(data)
-    });
-    alert('Anggota Berhasil Ditambah!');
-    loadAnggota();
-    e.target.reset();
+    const body = { nomor_anggota: document.getElementById('a_nomor').value, nama_lengkap: document.getElementById('a_nama').value, kelas: document.getElementById('a_kelas').value };
+    await fetch(`${API_URL}/anggota`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth }, body: JSON.stringify(body) });
+    alert("Anggota ditambah!"); loadAnggota();
 };
 
-// --- VALIDASI & SIRKULASI ---
-async function cekAnggota(val) {
-    if (val.length < 3) return;
-    const info = document.getElementById('val-anggota');
-    try {
-        const res = await fetch(`${API_URL}/anggota/cek?q=${val}`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
-        const user = await res.json();
-        info.classList.remove('hidden');
-
-        if (user && user.status_anggota === 'AKTIF') {
-            info.className = "mt-2 p-2 rounded text-sm bg-green-100 text-green-800";
-            info.innerHTML = `✅ <b>${user.nama_lengkap}</b> (${user.kelas}) - SIAP PINJAM`;
-            checkCanPinjam();
-        } else {
-            info.className = "mt-2 p-2 rounded text-sm bg-red-100 text-red-800";
-            info.innerHTML = `❌ <b>${user ? user.nama_lengkap : 'TIDAK DITEMUKAN'}</b> - NON AKTIF / TIDAK ADA`;
-            document.getElementById('btn-proses-pinjam').disabled = true;
-        }
-    } catch (e) { console.error(e); }
+function updateKategori() {
+    const dd = { "000": "Karya Umum", "800": "Fiksi" };
+    document.getElementById('b_kategori').value = dd[document.getElementById('b_klasifikasi').value] || "";
 }
 
-async function cekBuku(val) {
-    if (val.length < 5) return;
-    const info = document.getElementById('val-buku');
-    try {
-        const res = await fetch(`${API_URL}/buku/cek?q=${val}`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
-        const buku = await res.json();
-        info.classList.remove('hidden');
-
-        if (buku && buku.status === 'Tersedia (SR)') {
-            info.className = "mt-2 p-2 rounded text-sm bg-green-100 text-green-800";
-            info.innerHTML = `✅ <b>${buku.judul}</b> - ${buku.pengarang}`;
-            checkCanPinjam();
-        } else {
-            info.className = "mt-2 p-2 rounded text-sm bg-red-100 text-red-800";
-            info.innerHTML = `❌ ${buku ? 'STATUS: ' + buku.status : 'BUKU TIDAK ADA'}`;
-            document.getElementById('btn-proses-pinjam').disabled = true;
-        }
-    } catch (e) { console.error(e); }
-}
-
-function checkCanPinjam() {
-    const aOk = document.getElementById('val-anggota').innerText.includes('✅');
-    const bOk = document.getElementById('val-buku').innerText.includes('✅');
-    const btn = document.getElementById('btn-proses-pinjam');
-    if(aOk && bOk) {
-        btn.disabled = false;
-        btn.className = "w-full bg-orange-600 text-white py-3 rounded font-bold hover:bg-orange-700";
-    }
-}
-
-async function prosesPinjam() {
-    const data = {
-        kode_peminjaman: 'PJ-' + Date.now(),
-        nomor_anggota: document.getElementById('p_nomor_anggota').value,
-        kode_buku: document.getElementById('p_kode_buku').value,
-        batas_kembali: document.getElementById('p_batas').value
-    };
-    await fetch(`${API_URL}/sirkulasi`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + currentAuth },
-        body: JSON.stringify(data)
-    });
-    alert('Peminjaman Berhasil!');
-    location.reload();
-}
-
-async function loadSirkulasi() {
-    try {
-        const res = await fetch(`${API_URL}/sirkulasi`, { headers: { 'Authorization': 'Basic ' + currentAuth } });
-        const data = await res.json();
-        const list = document.getElementById('list-sirkulasi');
-        list.innerHTML = data.map(s => `
-            <div class="bg-gray-50 p-3 rounded border flex justify-between items-center">
-                <div>
-                    <p class="font-bold text-sm">${s.judul}</p>
-                    <p class="text-xs text-gray-500">Peminjam: ${s.nomor_anggota} | Batas: ${s.batas_kembali}</p>
-                    ${s.denda > 0 ? `<p class="text-xs text-red-600 font-bold">Denda: Rp${s.denda}</p>` : ''}
-                </div>
-                ${s.status_pinjam === 'DIPINJAM' ? 
-                `<button onclick="kembali(${s.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">Kembalikan</button>` : 
-                `<span class="text-green-600 text-xs font-bold uppercase">Selesai</span>`}
-            </div>
-        `).join('');
-    } catch (e) { console.error(e); }
-}
-
-async function kembali(id) {
-    if(!confirm('Proses Pengembalian Buku?')) return;
-    try {
-        const res = await fetch(`${API_URL}/kembali/${id}`, { 
-            method: 'POST', 
-            headers: { 'Authorization': 'Basic ' + currentAuth } 
-        });
-        const data = await res.json();
-        alert('Buku Berhasil Dikembalikan. Denda Keterlambatan: Rp' + data.denda);
-        loadSirkulasi();
-    } catch (e) { console.error(e); }
-}
-
-// Inisialisasi saat halaman dibuka
-window.onload = () => {
-    openTab('buku');
-    updateKategori();
-};
+window.onload = () => openTab('buku');
