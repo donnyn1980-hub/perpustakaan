@@ -48,6 +48,14 @@
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 0.95rem; }
         .form-control { width: 100%; padding: 12px 15px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white; }
         .form-control:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+            padding-right: 45px;
+        }
         .btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -86,7 +94,6 @@
                 <button onclick="location.reload()" class="btn" style="width: auto; padding: 8px 15px; background: #17a2b8;">🔄 Refresh Halaman</button>
             </div>
         </div>
-
         <div class="content">
             <div class="card">
                 <h2>➕ Tambah Buku Baru</h2>
@@ -104,16 +111,16 @@
                         <label for="klasifikasi">Nomor Klasifikasi</label>
                         <select id="klasifikasi" class="form-control" required>
                             <option value="">-- Pilih Nomor Klasifikasi --</option>
-                            <option value="000">000 (Komputer)</option>
-                            <option value="100">100 (Filsafat)</option>
+                            <option value="000">000 (Komputer, informasi dan referensi umum)</option>
+                            <option value="100">100 (Filsafat dan psikologi)</option>
                             <option value="200">200 (Agama)</option>
                             <option value="300">300 (Ilmu sosial)</option>
                             <option value="400">400 (Bahasa)</option>
-                            <option value="500">500 (Sains)</option>
+                            <option value="500">500 (Sains dan Matematika)</option>
                             <option value="600">600 (Teknologi)</option>
-                            <option value="700">700 (Kesenian)</option>
+                            <option value="700">700 (Kesenian dan Rekreasi)</option>
                             <option value="800">800 (Sastra)</option>
-                            <option value="900">900 (Sejarah)</option>
+                            <option value="900">900 (Sejarah dan Geografi)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -125,27 +132,30 @@
                         <input type="text" id="judul" class="form-control" placeholder="Masukkan judul buku" required>
                     </div>
                     <div class="info-box">
+                        <p><strong>Info Kode Otomatis:</strong></p>
                         <div class="kode-display">
-                            <div class="kode-item"><div class="kode-label">Pengarang</div><div id="kodePengarangDisplay" class="kode-value">-</div></div>
-                            <div class="kode-item"><div class="kode-label">Judul</div><div id="kodeJudulDisplay" class="kode-value">-</div></div>
-                            <div class="kode-item"><div class="kode-label">Koleksi</div><div id="kodeKoleksiDisplay" class="kode-value">C.1</div></div>
+                            <div class="kode-item"><div class="kode-label">Kode Pengarang</div><div id="kodePengarangDisplay" class="kode-value">-</div></div>
+                            <div class="kode-item"><div class="kode-label">Kode Judul</div><div id="kodeJudulDisplay" class="kode-value">-</div></div>
+                            <div class="kode-item"><div class="kode-label">Kode Koleksi</div><div id="kodeKoleksiDisplay" class="kode-value">C.1</div></div>
                         </div>
                     </div>
-                    <div class="form-group"><label for="isbn">ISBN</label><input type="text" id="isbn" class="form-control"></div>
-                    <div class="form-group"><label for="penerbit">Penerbit</label><input type="text" id="penerbit" class="form-control"></div>
-                    <div class="form-group"><label for="tahun_terbit">Tahun</label><input type="number" id="tahun_terbit" class="form-control" value="2026"></div>
-                    <div class="form-group"><label for="stok">Stok</label><input type="number" id="stok" class="form-control" value="1" min="1" required></div>
-                    <button type="submit" class="btn" id="submitBtn">💾 Simpan Buku</button>
+                    <div class="form-group"><label for="isbn">ISBN (Opsional)</label><input type="text" id="isbn" class="form-control" placeholder="Masukkan ISBN"></div>
+                    <div class="form-group"><label for="penerbit">Penerbit (Opsional)</label><input type="text" id="penerbit" class="form-control" placeholder="Masukkan nama penerbit"></div>
+                    <div class="form-group"><label for="tahun_terbit">Tahun Terbit (Opsional)</label><input type="number" id="tahun_terbit" class="form-control" placeholder="YYYY" min="1900" max="2026" value="2026"></div>
+                    <div class="form-group"><label for="stok">Jumlah Stok</label><input type="number" id="stok" class="form-control" value="1" min="1" required></div>
+                    <button type="submit" class="btn" id="submitBtn">
+                        <span id="submitText">💾 Simpan Buku</span>
+                        <span id="loadingText" style="display:none;">⏳ Menyimpan...</span>
+                    </button>
                 </form>
             </div>
-
             <div class="card">
                 <h2>📖 Daftar Buku</h2>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                     <button class="btn" onclick="loadBuku()" style="flex: 1;">🔄 Refresh Data</button>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Cari..." style="flex: 2;">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari judul atau pengarang..." style="flex: 2;">
                 </div>
-                <div id="booksContainer"></div>
+                <div id="booksContainer"><div class="loading">Memuat data buku...</div></div>
             </div>
         </div>
     </div>
