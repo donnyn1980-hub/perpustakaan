@@ -63,15 +63,26 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
     }
 });
 
+// Ganti bagian loadBuku di script.js Anda dengan ini:
 async function loadBuku() {
     const container = document.getElementById('booksContainer');
-    container.innerHTML = '<div class="loading">Memuat data...</div>';
+    container.innerHTML = 'Memuat...';
     try {
-        const response = await fetch(`${API_URL}/buku`);
-        const books = await response.json();
-        displayBooks(books);
-    } catch (error) {
-        container.innerHTML = `<div class="error">❌ Gagal: ${error.message}</div>`;
+        const res = await fetch(`${API_URL}/buku`);
+        
+        // CEK APAKAH RESPON BUKAN JSON (HTML ERROR)
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const textError = await res.text();
+            console.error("Respon bukan JSON:", textError);
+            throw new Error("Server tidak mengirimkan JSON. Cek rute Worker API Anda.");
+        }
+
+        const data = await res.json();
+        displayBooks(data);
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = `<div class="error">❌ ${e.message}</div>`;
     }
 }
 
