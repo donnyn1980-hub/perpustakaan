@@ -7,17 +7,18 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
     const submitBtn = e.target.querySelector('button');
     submitBtn.disabled = true;
 
+    // Ambil data dan pastikan tidak ada yang 'undefined'
     const data = {
-        kode_panggil: document.getElementById('kode_panggil').value,
-        klasifikasi: document.getElementById('klasifikasi').value,
-        klasifikasi_manual: document.getElementById('klasifikasi_manual').value,
-        kategori_manual: document.getElementById('kategori_manual').value,
-        pengarang: document.getElementById('pengarang').value,
-        judul: document.getElementById('judul').value,
-        isbn: document.getElementById('isbn').value,
-        penerbit: document.getElementById('penerbit').value,
-        tahun_terbit: document.getElementById('tahun_terbit').value,
-        stok: document.getElementById('stok').value
+        kode_panggil: document.getElementById('kode_panggil').value || "",
+        klasifikasi: document.getElementById('klasifikasi').value || "",
+        klasifikasi_manual: document.getElementById('klasifikasi_manual')?.value || "",
+        kategori_manual: document.getElementById('kategori_manual')?.value || "",
+        pengarang: document.getElementById('pengarang').value || "",
+        judul: document.getElementById('judul').value || "",
+        isbn: document.getElementById('isbn').value || "",
+        penerbit: document.getElementById('penerbit').value || "",
+        tahun_terbit: document.getElementById('tahun_terbit').value || "",
+        stok: document.getElementById('stok').value || "1"
     };
 
     try {
@@ -26,20 +27,31 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+
+        const result = await res.json();
+
         if (res.ok) {
             alert('✅ Berhasil disimpan!');
             document.getElementById('formBuku').reset();
-            document.getElementById('manualPanel').style.display = 'none';
+            const manualPanel = document.getElementById('manualPanel');
+            if (manualPanel) manualPanel.style.display = 'none';
             loadBuku();
+        } else {
+            alert('❌ Gagal: ' + (result.error || 'Terjadi kesalahan'));
         }
-    } catch (e) { alert('❌ Error koneksi'); }
-    finally { submitBtn.disabled = false; }
+    } catch (e) { 
+        alert('❌ Error koneksi ke server'); 
+    } finally { 
+        submitBtn.disabled = false; 
+    }
 });
 
 async function loadBuku() {
+    const listDiv = document.getElementById('listBuku');
     try {
         const res = await fetch(API_URL + '/buku');
         const books = await res.json();
+        
         let html = '<table><thead><tr><th>Kode Panggil</th><th>Kategori</th><th>Judul</th><th>Penerbit</th><th>Aksi</th></tr></thead><tbody>';
         books.forEach(b => {
             const kode = b.kode_panggil + '.' + b.klasifikasi + '.' + b.kode_pengarang + '.' + b.kode_judul + '.' + b.kode_koleksi;
@@ -51,13 +63,19 @@ async function loadBuku() {
                 <td><button onclick="hapusBuku(${b.id})" style="background:#e74c3c; color:white; border:none; padding:5px; cursor:pointer; border-radius:4px;">Hapus</button></td>
             </tr>`;
         });
-        document.getElementById('listBuku').innerHTML = html + '</tbody></table>';
-    } catch (e) { document.getElementById('listBuku').innerHTML = 'Gagal memuat.'; }
+        listDiv.innerHTML = html + '</tbody></table>';
+    } catch (e) { 
+        listDiv.innerHTML = 'Gagal memuat data buku.'; 
+    }
 }
 
 async function hapusBuku(id) {
     if (confirm('Hapus koleksi ini?')) {
-        await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
-        loadBuku();
+        try {
+            await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
+            loadBuku();
+        } catch (e) {
+            alert('Gagal menghapus data');
+        }
     }
 }
