@@ -7,7 +7,6 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
     const submitBtn = e.target.querySelector('button');
     submitBtn.disabled = true;
 
-    // Ambil data dan pastikan tidak ada yang 'undefined'
     const data = {
         kode_panggil: document.getElementById('kode_panggil').value || "",
         klasifikasi: document.getElementById('klasifikasi').value || "",
@@ -22,60 +21,46 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
     };
 
     try {
-        const res = await fetch(API_URL + '/buku', {
+        const res = await fetch(API_URL + '/api/buku', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-
-        const result = await res.json();
-
         if (res.ok) {
             alert('✅ Berhasil disimpan!');
             document.getElementById('formBuku').reset();
-            const manualPanel = document.getElementById('manualPanel');
-            if (manualPanel) manualPanel.style.display = 'none';
+            if(document.getElementById('manualPanel')) document.getElementById('manualPanel').style.display = 'none';
             loadBuku();
         } else {
-            alert('❌ Gagal: ' + (result.error || 'Terjadi kesalahan'));
+            const err = await res.json();
+            alert('❌ Gagal: ' + err.error);
         }
-    } catch (e) { 
-        alert('❌ Error koneksi ke server'); 
-    } finally { 
-        submitBtn.disabled = false; 
-    }
+    } catch (e) { alert('❌ Error koneksi'); }
+    finally { submitBtn.disabled = false; }
 });
 
 async function loadBuku() {
-    const listDiv = document.getElementById('listBuku');
     try {
-        const res = await fetch(API_URL + '/buku');
+        const res = await fetch(API_URL + '/api/buku');
         const books = await res.json();
-        
-        let html = '<table><thead><tr><th>Kode Panggil</th><th>Kategori</th><th>Judul</th><th>Penerbit</th><th>Aksi</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>Kode</th><th>Kategori</th><th>Judul</th><th>Penerbit</th><th>Aksi</th></tr></thead><tbody>';
         books.forEach(b => {
             const kode = b.kode_panggil + '.' + b.klasifikasi + '.' + b.kode_pengarang + '.' + b.kode_judul + '.' + b.kode_koleksi;
             html += `<tr>
                 <td><strong>${kode}</strong></td>
                 <td><small>${b.klasifikasi}</small><br>${b.kategori}</td>
-                <td>${b.judul}<br><small>Oleh: ${b.pengarang}</small></td>
+                <td>${b.judul}</td>
                 <td>${b.penerbit || '-'}<br>${b.tahun_terbit || '-'}</td>
-                <td><button onclick="hapusBuku(${b.id})" style="background:#e74c3c; color:white; border:none; padding:5px; cursor:pointer; border-radius:4px;">Hapus</button></td>
+                <td><button onclick="hapusBuku(${b.id})" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">Hapus</button></td>
             </tr>`;
         });
-        listDiv.innerHTML = html + '</tbody></table>';
-    } catch (e) { 
-        listDiv.innerHTML = 'Gagal memuat data buku.'; 
-    }
+        document.getElementById('listBuku').innerHTML = html + '</tbody></table>';
+    } catch (e) { document.getElementById('listBuku').innerHTML = 'Gagal memuat.'; }
 }
 
 async function hapusBuku(id) {
-    if (confirm('Hapus koleksi ini?')) {
-        try {
-            await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
-            loadBuku();
-        } catch (e) {
-            alert('Gagal menghapus data');
-        }
+    if (confirm('Hapus?')) {
+        await fetch(API_URL + '/api/buku/' + id, { method: 'DELETE' });
+        loadBuku();
     }
 }
