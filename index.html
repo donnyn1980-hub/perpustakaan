@@ -3,152 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Manajemen Perpustakaan</title>
+    <title>Sistem Perpustakaan</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .header p { opacity: 0.9; font-size: 1.1rem; }
-        .content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px; }
-        @media (max-width: 768px) { .content { grid-template-columns: 1fr; } }
-        .card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: 1px solid #e9ecef;
-        }
-        .card h2 {
-            color: #495057;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #dee2e6;
-            font-size: 1.5rem;
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 0.95rem; }
-        .form-control { width: 100%; padding: 12px 15px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white; }
-        .form-control:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
-        .books-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .books-table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; text-align: left; font-weight: 600; }
-        .books-table td { padding: 12px 15px; border-bottom: 1px solid #dee2e6; color: #495057; }
-        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-        .status-available { background-color: #d4edda; color: #155724; }
-        .status-unavailable { background-color: #f8d7da; color: #721c24; }
-        .loading { text-align: center; padding: 20px; color: #6c757d; font-style: italic; }
-        .error { background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .success { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
-        .kode-display { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px dashed #dee2e6; }
-        .kode-item { text-align: center; }
-        .kode-label { font-size: 0.85rem; color: #6c757d; margin-bottom: 5px; }
-        .kode-value { font-family: 'Courier New', monospace; font-weight: bold; color: #495057; background: white; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; }
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+        .btn-save { background: #28a745; }
+        .btn-delete { background: #dc3545; padding: 5px 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 Sistem Manajemen Perpustakaan</h1>
-            <p>Worker aktif - Terhubung ke Database D1 Cloudflare</p>
-            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
-                <button onclick="location.reload()" class="btn" style="width: auto; padding: 8px 15px; background: #17a2b8;">🔄 Refresh Halaman</button>
+    <div class="card">
+        <h2>Input Buku</h2>
+        <div id="message"></div>
+        <form id="formBuku">
+            <div class="form-group">
+                <label>Kode Panggil</label>
+                <select id="kode_panggil" required>
+                    <option value="">-- Pilih --</option>
+                    <option value="SR">SR (Sirkulasi)</option>
+                    <option value="RF">RF (Referensi)</option>
+                </select>
             </div>
-        </div>
+            <div class="form-group">
+                <label>Nomor Klasifikasi</label>
+                <select id="klasifikasi" required>
+                    <option value="">-- Pilih --</option>
+                    <option value="000">000 (Komputer, informasi dan referensi umum)</option>
+                    <option value="100">100 (Filsafat dan psikologi)</option>
+                    <option value="200">200 (Agama)</option>
+                    <option value="300">300 (Ilmu sosial)</option>
+                    <option value="400">400 (Bahasa)</option>
+                    <option value="500">500 (Sains dan Matematika)</option>
+                    <option value="600">600 (Teknologi)</option>
+                    <option value="700">700 (Kesenian dan Rekreasi)</option>
+                    <option value="800">800 (Sastra)</option>
+                    <option value="900">900 (Sejarah dan Geografi)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nama Pengarang</label>
+                <input type="text" id="pengarang" required>
+            </div>
+            <div class="form-group">
+                <label>Judul Buku</label>
+                <input type="text" id="judul" required>
+            </div>
+            <div class="form-group">
+                <label>ISBN (Opsional)</label>
+                <input type="text" id="isbn">
+            </div>
+            <button type="submit" class="btn btn-save">💾 Simpan Buku</button>
+        </form>
 
-        <div class="content">
-            <div class="card">
-                <h2>➕ Tambah Buku Baru</h2>
-                <div id="message"></div>
-                <form id="formBuku">
-                    <div class="form-group">
-                        <label for="kode_panggil">Kode Panggil</label>
-                        <select id="kode_panggil" class="form-control" required>
-                            <option value="">-- Pilih Kode Panggil --</option>
-                            <option value="SR">SR (Sirkulasi)</option>
-                            <option value="RF">RF (Referensi)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="klasifikasi">Nomor Klasifikasi</label>
-                        <select id="klasifikasi" class="form-control" required>
-                            <option value="">-- Pilih Nomor Klasifikasi --</option>
-                            <option value="000">000 (Komputer, informasi dan referensi umum)</option>
-                            <option value="100">100 (Filsafat dan psikologi)</option>
-                            <option value="200">200 (Agama)</option>
-                            <option value="300">300 (Ilmu sosial)</option>
-                            <option value="400">400 (Bahasa)</option>
-                            <option value="500">500 (Sains dan Matematika)</option>
-                            <option value="600">600 (Teknologi)</option>
-                            <option value="700">700 (Kesenian dan Rekreasi)</option>
-                            <option value="800">800 (Sastra)</option>
-                            <option value="900">900 (Sejarah dan Geografi)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="pengarang">Nama Pengarang</label>
-                        <input type="text" id="pengarang" class="form-control" placeholder="Masukkan nama pengarang" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="judul">Judul Buku</label>
-                        <input type="text" id="judul" class="form-control" placeholder="Masukkan judul buku" required>
-                    </div>
-                    <div class="info-box">
-                        <div class="kode-display">
-                            <div class="kode-item"><div class="kode-label">Pengarang</div><div id="kodePengarangDisplay" class="kode-value">-</div></div>
-                            <div class="kode-item"><div class="kode-label">Judul</div><div id="kodeJudulDisplay" class="kode-value">-</div></div>
-                            <div class="kode-item"><div class="kode-label">Koleksi</div><div id="kodeKoleksiDisplay" class="kode-value">C.1</div></div>
-                        </div>
-                    </div>
-                    <div class="form-group"><label for="isbn">ISBN</label><input type="text" id="isbn" class="form-control" placeholder="Masukkan ISBN"></div>
-                    <div class="form-group"><label for="penerbit">Penerbit</label><input type="text" id="penerbit" class="form-control" placeholder="Masukkan nama penerbit"></div>
-                    <div class="form-group"><label for="tahun_terbit">Tahun</label><input type="number" id="tahun_terbit" class="form-control" value="2026"></div>
-                    <div class="form-group"><label for="stok">Stok</label><input type="number" id="stok" class="form-control" value="1" min="1" required></div>
-                    <button type="submit" class="btn" id="submitBtn">💾 Simpan Buku</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h2>📖 Daftar Buku</h2>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button class="btn" onclick="loadBuku()" style="flex: 1;">🔄 Refresh Data</button>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Cari judul atau pengarang..." style="flex: 2;">
-                </div>
-                <div id="booksContainer"></div>
-            </div>
-        </div>
+        <hr style="margin: 30px 0;">
+        <h3>Daftar Koleksi</h3>
+        <div id="listBuku"></div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
