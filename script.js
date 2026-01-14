@@ -1,121 +1,77 @@
-// ===================== HELPER FUNCTIONS =====================
-function handleCors() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-}
+const API_URL = "https://perpustakaan.donnyn1980.workers.dev/api";
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...handleCors(),
-    },
-  });
-}
+document.addEventListener('DOMContentLoaded', loadBuku);
 
-function errorResponse(message, status = 400) {
-  return jsonResponse({ error: message }, status);
-}
+document.getElementById('formBuku').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
 
-// ===================== DATABASE FUNCTIONS =====================
-async function getBuku(db) {
-  try {
-    const { results } = await db.prepare(
-      'SELECT * FROM buku ORDER BY created_at DESC'
-    ).all();
-    return results;
-  } catch (error) { throw error; }
-}
+    // Logika Pemisahan Klasifikasi dan Kategori
+    const fullKlasifikasi = document.getElementById('klasifikasi_lengkap').value;
+    const parts = fullKlasifikasi.split(' – ');
+    const klasifikasi = parts[0].trim();
+    const kategori = parts[1].trim();
 
-async function tambahBuku(db, data) {
-  try {
-    const mapKategori = {
-      "000": "Komputer",
-      "100": "Filsafat dan psikologi",
-      "200": "Agama",
-      "300": "Ilmu sosial",
-      "400": "Bahasa",
-      "500": "Sains dan Matematika",
-      "600": "Teknologi",
-      "700": "Kesenian dan Rekreasi",
-      "800": "Sastra",
-      "900": "Sejarah dan Geografi"
+    const data = {
+        kode_panggil: document.getElementById('kode_panggil').value,
+        klasifikasi: klasifikasi,
+        kategori: kategori,
+        pengarang: document.getElementById('pengarang').value,
+        judul: document.getElementById('judul').value,
+        isbn: document.getElementById('isbn').value,
+        penerbit: document.getElementById('penerbit').value,
+        tahun_terbit: document.getElementById('tahun_terbit').value,
+        stok: document.getElementById('stok').value
     };
-    const kategori = mapKategori[data.klasifikasi] || "Umum";
-
-    // Logika Kode Pengarang: Ambil 3 huruf pertama dari kata terakhir
-    const namaArray = data.pengarang.trim().split(/\s+/);
-    const kataTerakhir = namaArray[namaArray.length - 1];
-    const kodePengarang = kataTerakhir.substring(0, 3).toUpperCase();
-    
-    const kodeJudul = data.judul.trim().charAt(0).toLowerCase();
-    
-    // Ambil jumlah perulangan berdasarkan input stok
-    const jumlahInput = parseInt(data.stok) || 1;
-    let lastId = null;
-
-    // Loop untuk memasukkan data sebanyak jumlah stok
-    for (let i = 0; i < jumlahInput; i++) {
-      const checkKoleksi = await db.prepare('SELECT COUNT(*) as total FROM buku WHERE judul = ?').bind(data.judul).first();
-      const koleksiKe = (checkKoleksi?.total || 0) + 1;
-      const kodeKoleksi = 'C.' + koleksiKe;
-      
-      const result = await db.prepare(
-        'INSERT INTO buku (kode_panggil, klasifikasi, kategori, pengarang, kode_pengarang, judul, kode_judul, koleksi_ke, kode_koleksi, isbn, penerbit, tahun_terbit, stok) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-      ).bind(
-        data.kode_panggil,
-        data.klasifikasi,
-        kategori,
-        data.pengarang,
-        kodePengarang,
-        data.judul,
-        kodeJudul,
-        koleksiKe,
-        kodeKoleksi,
-        data.isbn || "", // ISBN tetap sama sesuai input user
-        data.penerbit || "",
-        data.tahun_terbit || "",
-        1 
-      ).run();
-      
-      lastId = result.meta.last_row_id;
-    }
-    
-    return { success: true, message: jumlahInput + " data berhasil dimasukkan", last_id: lastId };
-  } catch (error) { throw error; }
-}
-
-async function deleteBuku(db, id) {
-  try {
-    const result = await db.prepare('DELETE FROM buku WHERE id = ?').bind(id).run();
-    return { success: result.meta.changes > 0 };
-  } catch (error) { throw error; }
-}
-
-// ===================== MAIN WORKER HANDLER =====================
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const method = request.method;
-    const DB = env["perpustakaan-db"];
-    
-    if (method === 'OPTIONS') return new Response(null, { headers: handleCors() });
 
     try {
-      if (path === '/api/buku' && method === 'GET') return jsonResponse(await getBuku(DB));
-      if (path === '/api/buku' && method === 'POST') {
-        const data = await request.json();
-        return jsonResponse(await tambahBuku(DB, data), 201);
-      }
-      if (path.match(/^\/api\/buku\/\d+$/) && method === 'DELETE') {
-        return jsonResponse(await deleteBuku(DB, path.split('/').pop()));
-      }
-    } catch (e) { return errorResponse(e.message, 500); }
-    return errorResponse('Not Found', 404);
-  }
-};
+        const res = await fetch(API_URL + '/buku', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            alert('✅ Berhasil menyimpan ' + data.stok + ' data buku!');
+            document.getElementById('formBuku').reset();
+            document.getElementById('stok').value = 1;
+            loadBuku();
+        } else {
+            const err = await res.json();
+            alert('❌ Gagal: ' + err.error);
+        }
+    } catch (e) {
+        alert('❌ Koneksi Gagal');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Simpan Buku';
+    }
+});
+
+async function loadBuku() {
+    try {
+        const res = await fetch(API_URL + '/buku');
+        const books = await res.json();
+        let html = '<table><thead><tr><th>Kode</th><th>Kategori</th><th>Judul</th><th>Penerbit</th><th>Aksi</th></tr></thead><tbody>';
+        books.forEach(b => {
+            const kode = b.kode_panggil + '.' + b.klasifikasi + '.' + b.kode_pengarang + '.' + b.kode_judul + '.' + b.kode_koleksi;
+            html += '<tr>' +
+                '<td><strong>' + kode + '</strong></td>' +
+                '<td>' + b.kategori + '</td>' +
+                '<td>' + b.judul + '</td>' +
+                '<td>' + (b.penerbit || '-') + ' (' + (b.tahun_terbit || '-') + ')</td>' +
+                '<td><button onclick="hapusBuku(' + b.id + ')" style="background:red; color:white; border:none; padding:5px; cursor:pointer; border-radius:3px;">Hapus</button></td>' +
+            '</tr>';
+        });
+        document.getElementById('listBuku').innerHTML = html + '</tbody></table>';
+    } catch (e) {
+        document.getElementById('listBuku').innerHTML = 'Gagal memuat data.';
+    }
+}
+
+async function hapusBuku(id) {
+    if (!confirm('Hapus data koleksi ini?')) return;
+    const res = await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
+    if (res.ok) loadBuku();
+}
