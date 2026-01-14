@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perpustakaan Terpadu SMAN 2 Cikarang Barat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -19,121 +20,77 @@
                 <h1 class="text-2xl font-bold uppercase tracking-wider">Perpustakaan Terpadu</h1>
                 <p class="text-sm opacity-80">SMAN 2 CIKARANG BARAT</p>
             </div>
-            <div id="admin-info" class="text-right">
-                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm transition">Keluar</button>
-            </div>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm transition font-bold">LOGOUT</button>
         </div>
     </header>
 
     <main class="container mx-auto mt-6 p-4 flex-grow">
-        <nav class="flex space-x-2 mb-6 bg-white p-2 rounded-lg shadow">
+        <nav class="flex space-x-2 mb-6 bg-white p-2 rounded-lg shadow overflow-x-auto">
             <button onclick="openTab('buku')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-buku">Manajemen Buku</button>
             <button onclick="openTab('anggota')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-anggota">Manajemen Anggota</button>
-            <button onclick="openTab('sirkulasi')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-sirkulasi">Sirkulasi (Pinjam/Kembali)</button>
+            <button onclick="openTab('sirkulasi')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-sirkulasi">Sirkulasi QR</button>
         </nav>
 
         <section id="buku" class="tab-content bg-white p-6 rounded-xl shadow">
-            <h2 class="text-xl font-bold mb-4 border-b pb-2 text-blue-800">Input Koleksi Buku</h2>
+            <h2 class="text-xl font-bold mb-4 text-blue-800">Input Koleksi Buku</h2>
             <form id="form-buku" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-bold mb-1">Klasifikasi DDC</label>
+                <div><label class="text-xs font-bold">Klasifikasi</label>
                     <select id="b_klasifikasi" class="w-full border p-2 rounded" onchange="updateKategori()">
-                        <option value="000">000 - Karya Umum</option>
-                        <option value="100">100 - Filsafat & Psikologi</option>
-                        <option value="200">200 - Agama</option>
-                        <option value="300">300 - Ilmu Sosial</option>
-                        <option value="400">400 - Bahasa</option>
-                        <option value="500">500 - Sains & Matematika</option>
-                        <option value="600">600 - Teknologi</option>
-                        <option value="700">700 - Kesenian & Olahraga</option>
-                        <option value="800">800 - Kesusastraan / Fiksi</option>
-                        <option value="900">900 - Sejarah & Geografi</option>
+                        <option value="000">000 - Karya Umum</option><option value="800">800 - Fiksi</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">Kategori</label>
-                    <input type="text" id="b_kategori" class="w-full border p-2 rounded bg-gray-50" readonly>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">ISBN</label>
-                    <input type="text" id="b_isbn" class="w-full border p-2 rounded">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold mb-1">Judul Buku</label>
-                    <input type="text" id="b_judul" class="w-full border p-2 rounded" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">Pengarang</label>
-                    <input type="text" id="b_pengarang" class="w-full border p-2 rounded" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">Penerbit</label>
-                    <input type="text" id="b_penerbit" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">Tahun Terbit</label>
-                    <input type="number" id="b_tahun" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold mb-1">Jumlah Eksemplar</label>
-                    <input type="number" id="b_stok" value="1" min="1" class="w-full border p-2 rounded">
-                </div>
-                <div class="md:col-span-3">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 w-full font-bold">SIMPAN DATA BUKU</button>
-                </div>
+                <div><label class="text-xs font-bold">Kategori</label><input type="text" id="b_kategori" class="w-full border p-2 rounded bg-gray-50" readonly></div>
+                <div><label class="text-xs font-bold">ISBN</label><input type="text" id="b_isbn" class="w-full border p-2 rounded"></div>
+                <div class="md:col-span-2"><label class="text-xs font-bold">Judul</label><input type="text" id="b_judul" class="w-full border p-2 rounded" required></div>
+                <div><label class="text-xs font-bold">Pengarang</label><input type="text" id="b_pengarang" class="w-full border p-2 rounded" required></div>
+                <div><label class="text-xs font-bold">Eksemplar</label><input type="number" id="b_stok" value="1" class="w-full border p-2 rounded"></div>
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold md:col-span-3">SIMPAN</button>
             </form>
-            <div class="mt-8 overflow-x-auto">
-                <table class="w-full text-sm text-left border">
-                    <thead class="bg-gray-200">
-                        <tr>
-                            <th class="p-2 border">Kode Buku</th>
-                            <th class="p-2 border">Judul</th>
-                            <th class="p-2 border">Pengarang</th>
-                            <th class="p-2 border">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="list-buku"></tbody>
-                </table>
-            </div>
+            <div class="mt-6 overflow-x-auto"><table class="w-full text-xs text-left border"><thead class="bg-gray-100"><tr><th class="p-2 border">Kode</th><th class="p-2 border">Judul</th><th class="p-2 border">Status</th></tr></thead><tbody id="list-buku"></tbody></table></div>
         </section>
 
         <section id="anggota" class="tab-content bg-white p-6 rounded-xl shadow">
-            <h2 class="text-xl font-bold mb-4 border-b pb-2 text-green-800">Data Anggota Perpustakaan</h2>
+            <h2 class="text-xl font-bold mb-4 text-green-800">Data Anggota</h2>
             <form id="form-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <input type="text" id="a_nomor" placeholder="Nomor Anggota / NIS" class="border p-2 rounded" required>
-                <input type="text" id="a_nama" placeholder="Nama Lengkap" class="border p-2 rounded" required>
-                <input type="text" id="a_kelas" placeholder="Kelas (contoh: X-IPA-1)" class="border p-2 rounded" required>
-                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-bold md:col-span-3">TAMBAH ANGGOTA</button>
+                <input type="text" id="a_nomor" placeholder="NIS" class="border p-2 rounded" required>
+                <input type="text" id="a_nama" placeholder="Nama" class="border p-2 rounded" required>
+                <input type="text" id="a_kelas" placeholder="Kelas" class="border p-2 rounded" required>
+                <button type="submit" class="bg-green-600 text-white p-2 rounded font-bold md:col-span-3">TAMBAH</button>
             </form>
-            <div class="mt-8 overflow-x-auto" id="list-anggota-wrapper"></div>
+            <div id="list-anggota-wrapper" class="overflow-x-auto text-xs"></div>
         </section>
 
-        <section id="sirkulasi" class="tab-content bg-white p-6 rounded-xl shadow">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="border-r pr-6">
-                    <h2 class="text-xl font-bold mb-4 text-orange-700">Form Peminjaman</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase">Nomor Anggota</label>
-                            <input type="text" id="p_nomor_anggota" onkeyup="cekAnggota(this.value)" class="w-full border p-2 rounded focus:ring-2 focus:ring-orange-300">
-                            <div id="val-anggota" class="mt-2 p-2 rounded text-sm hidden"></div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase">Kode Buku</label>
-                            <input type="text" id="p_kode_buku" onkeyup="cekBuku(this.value)" class="w-full border p-2 rounded focus:ring-2 focus:ring-orange-300">
-                            <div id="val-buku" class="mt-2 p-2 rounded text-sm hidden"></div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase">Batas Kembali</label>
-                            <input type="date" id="p_batas" class="w-full border p-2 rounded">
-                        </div>
-                        <button id="btn-proses-pinjam" onclick="prosesPinjam()" disabled class="w-full bg-gray-400 text-white py-3 rounded font-bold cursor-not-allowed">PROSES PINJAM</button>
+        <section id="sirkulasi" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow">
+                    <h2 class="text-lg font-bold mb-4 flex items-center"><span class="mr-2">📷</span> QR Scanner</h2>
+                    <div id="reader" class="rounded-lg overflow-hidden border-2 border-dashed border-gray-300"></div>
+                    <div class="mt-4 flex space-x-2">
+                        <button onclick="startScan('anggota')" class="flex-1 bg-blue-500 text-white p-2 rounded text-sm font-bold">SCAN ANGGOTA</button>
+                        <button onclick="startScan('buku')" class="flex-1 bg-orange-500 text-white p-2 rounded text-sm font-bold">SCAN BUKU</button>
                     </div>
                 </div>
 
-                <div>
-                    <h2 class="text-xl font-bold mb-4 text-blue-700">Daftar Pinjaman Aktif</h2>
-                    <div id="list-sirkulasi" class="space-y-2"></div>
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-500">
+                        <h3 class="font-bold text-gray-700 mb-2">PROFIL PEMINJAM</h3>
+                        <div id="p-detail-anggota" class="p-4 bg-gray-50 rounded italic text-gray-500">Silakan scan QR Anggota...</div>
+                        
+                        <h3 class="font-bold text-gray-700 mt-6 mb-2">DAFTAR PINJAMAN (MAKS 3)</h3>
+                        <div id="p-list-pinjaman" class="space-y-2">
+                            <div class="p-3 border rounded bg-gray-50 text-xs text-gray-400">Slot 1: Kosong</div>
+                            <div class="p-3 border rounded bg-gray-50 text-xs text-gray-400">Slot 2: Kosong</div>
+                            <div class="p-3 border rounded bg-gray-50 text-xs text-gray-400">Slot 3: Kosong</div>
+                        </div>
+                    </div>
+
+                    <div id="form-pinjam-final" class="bg-white p-6 rounded-xl shadow border-t-4 border-orange-500 hidden">
+                        <h3 class="font-bold text-gray-700 mb-2">BUKU TERDETEKSI</h3>
+                        <div id="p-detail-buku" class="p-3 bg-orange-50 rounded text-sm mb-4"></div>
+                        <label class="text-xs font-bold">Batas Kembali</label>
+                        <input type="date" id="p-batas" class="w-full border p-2 rounded mb-4">
+                        <button onclick="submitPinjaman()" class="w-full bg-orange-600 text-white py-3 rounded font-bold">KONFIRMASI PINJAM</button>
+                    </div>
                 </div>
             </div>
         </section>
