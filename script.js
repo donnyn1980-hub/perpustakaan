@@ -1,6 +1,5 @@
 const API_URL = "https://perpustakaan.donnyn1980.workers.dev/api";
 
-// Cek status login saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('auth_key')) {
         showMain();
@@ -8,13 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Fungsi untuk mengisi input manual saat dropdown dipilih
+function updateManualInput() {
+    const menu = document.getElementById('menu_klasifikasi').value;
+    if (menu) {
+        const parts = menu.split(' – ');
+        document.getElementById('klasifikasi').value = parts[0].trim();
+        document.getElementById('kategori').value = parts[1].trim();
+    }
+}
+
 function handleLogin() {
     const user = document.getElementById('user_login').value;
     const pass = document.getElementById('pass_login').value;
     const key = btoa(user + ':' + pass);
     localStorage.setItem('auth_key', key);
-    
-    // Test login dengan load data
     loadBuku(true); 
 }
 
@@ -67,15 +74,10 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Menyimpan...';
 
-    const fullKlasifikasi = document.getElementById('klasifikasi_lengkap').value;
-    const parts = fullKlasifikasi.split(' – ');
-    const klasifikasi = parts[0].trim();
-    const kategori = parts[1].trim();
-
     const data = {
         kode_panggil: document.getElementById('kode_panggil').value,
-        klasifikasi: klasifikasi,
-        kategori: kategori,
+        klasifikasi: document.getElementById('klasifikasi').value,
+        kategori: document.getElementById('kategori').value,
         pengarang: document.getElementById('pengarang').value,
         judul: document.getElementById('judul').value,
         isbn: document.getElementById('isbn').value,
