@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perpustakaan Terpadu SMAN 2 Cikarang Barat</title>
+    <title>Perpustakaan SMAN 2 Cikarang Barat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -17,18 +17,12 @@
     <section id="login-page" class="page-content active flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-blue-600">
             <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-blue-900 uppercase">Akses Admin</h1>
-                <p class="text-sm text-gray-500">Perpustakaan SMAN 2 Cikarang Barat</p>
+                <h2 class="text-2xl font-bold text-blue-900 uppercase">Login Admin</h2>
+                <p class="text-sm text-gray-500">Sistem Informasi Perpustakaan</p>
             </div>
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">USERNAME</label>
-                    <input type="text" id="login-user" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">PASSWORD</label>
-                    <input type="password" id="login-pass" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
-                </div>
+                <input type="text" id="login-user" placeholder="Username" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
                 <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">MASUK</button>
             </div>
             <p id="login-error" class="text-red-500 text-xs text-center mt-4 hidden font-bold">Username atau Password Salah!</p>
@@ -38,45 +32,39 @@
     <section id="dashboard-page" class="page-content flex-grow flex flex-col">
         <header class="bg-gradient-custom text-white p-6 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-bold uppercase tracking-wider">Perpustakaan Terpadu</h1>
-                    <p class="text-sm opacity-80">SMAN 2 CIKARANG BARAT</p>
-                </div>
-                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm transition font-bold shadow">KELUAR</button>
+                <h1 class="text-xl font-bold uppercase tracking-tighter">Perpus SMAN 2 Cikbar</h1>
+                <button onclick="logout()" class="bg-red-500 px-4 py-2 rounded text-xs font-bold shadow hover:bg-red-600 transition">LOGOUT</button>
             </div>
         </header>
 
         <main class="container mx-auto mt-6 p-4 flex-grow">
             <nav class="flex space-x-2 mb-6 bg-white p-2 rounded-lg shadow overflow-x-auto">
-                <button onclick="openTab('buku')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-buku">Koleksi Buku</button>
-                <button onclick="openTab('anggota')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-anggota">Data Anggota</button>
-                <button onclick="openTab('sirkulasi')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-sirkulasi">Sirkulasi (Scan/Manual)</button>
+                <button onclick="openTab('buku')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-buku">Buku</button>
+                <button onclick="openTab('anggota')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-anggota">Anggota</button>
+                <button onclick="openTab('sirkulasi')" class="tab-btn px-6 py-2 rounded-md font-medium transition" id="btn-sirkulasi">Sirkulasi</button>
             </nav>
 
             <section id="buku" class="tab-content bg-white p-6 rounded-xl shadow">
-                <h2 class="text-xl font-bold mb-4 text-blue-800 border-b pb-2">Manajemen Buku</h2>
+                <h2 class="text-lg font-bold mb-4 text-blue-800">Manajemen Buku</h2>
                 <form id="form-buku" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div><label class="text-xs font-bold uppercase">Klasifikasi</label>
-                        <select id="b_klasifikasi" class="w-full border p-2 rounded" onchange="updateKategori()">
-                            <option value="000">000 - Umum</option>
-                            <option value="500">500 - Sains</option>
-                            <option value="800">800 - Fiksi</option>
-                        </select>
-                    </div>
-                    <div><label class="text-xs font-bold uppercase">Kategori</label><input type="text" id="b_kategori" class="w-full border p-2 rounded bg-gray-50" readonly></div>
-                    <div><label class="text-xs font-bold uppercase">ISBN</label><input type="text" id="b_isbn" class="w-full border p-2 rounded"></div>
-                    <div class="md:col-span-2"><label class="text-xs font-bold uppercase">Judul Buku</label><input type="text" id="b_judul" class="w-full border p-2 rounded" required></div>
-                    <div><label class="text-xs font-bold uppercase">Pengarang</label><input type="text" id="b_pengarang" class="w-full border p-2 rounded" required></div>
-                    <div><label class="text-xs font-bold uppercase">Eksemplar</label><input type="number" id="b_stok" value="1" class="w-full border p-2 rounded"></div>
-                    <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold md:col-span-2">SIMPAN DATA BUKU</button>
+                    <select id="b_klasifikasi" class="border p-2 rounded" onchange="updateKategori()">
+                        <option value="000">000 - Umum</option>
+                        <option value="800">800 - Fiksi</option>
+                    </select>
+                    <input type="text" id="b_kategori" placeholder="Kategori" class="border p-2 rounded bg-gray-50" readonly>
+                    <input type="text" id="b_isbn" placeholder="ISBN" class="border p-2 rounded">
+                    <input type="text" id="b_judul" placeholder="Judul Buku" class="md:col-span-2 border p-2 rounded" required>
+                    <input type="text" id="b_pengarang" placeholder="Pengarang" class="border p-2 rounded" required>
+                    <input type="number" id="b_stok" value="1" class="border p-2 rounded">
+                    <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold md:col-span-2">SIMPAN BUKU</button>
                 </form>
                 <div class="mt-6 overflow-x-auto"><table class="w-full text-xs text-left border"><thead class="bg-gray-100"><tr><th class="p-2 border">Kode</th><th class="p-2 border">Judul</th><th class="p-2 border">Status</th></tr></thead><tbody id="list-buku"></tbody></table></div>
             </section>
 
             <section id="anggota" class="tab-content bg-white p-6 rounded-xl shadow">
-                <h2 class="text-xl font-bold mb-4 text-green-800 border-b pb-2">Manajemen Anggota</h2>
+                <h2 class="text-lg font-bold mb-4 text-green-800">Manajemen Anggota</h2>
                 <form id="form-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <input type="text" id="a_nomor" placeholder="Nomor Anggota / NIS" class="border p-2 rounded" required>
+                    <input type="text" id="a_nomor" placeholder="No Anggota / NIS" class="border p-2 rounded" required>
                     <input type="text" id="a_nama" placeholder="Nama Lengkap" class="border p-2 rounded" required>
                     <input type="text" id="a_kelas" placeholder="Kelas" class="border p-2 rounded" required>
                     <button type="submit" class="bg-green-600 text-white p-2 rounded font-bold md:col-span-3">TAMBAH ANGGOTA</button>
@@ -87,53 +75,39 @@
             <section id="sirkulasi" class="tab-content">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow">
-                        <h2 class="text-lg font-bold mb-4 flex items-center">📷 Input QR / Manual</h2>
-                        <div id="reader" class="rounded-lg overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 mb-4" style="min-height: 250px;"></div>
-                        <div class="space-y-4">
-                            <div class="p-4 border rounded-lg bg-blue-50">
-                                <label class="block text-xs font-bold text-blue-800 mb-1 uppercase">Nomor Anggota</label>
-                                <div class="flex space-x-2">
-                                    <input type="text" id="m_nomor_anggota" placeholder="Ketik No. Anggota..." class="flex-1 border p-2 rounded text-sm">
-                                    <button onclick="handleScanAnggota(document.getElementById('m_nomor_anggota').value)" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold">CEK</button>
-                                    <button onclick="startScan('anggota')" class="bg-gray-800 text-white px-3 py-2 rounded text-xs">SCAN</button>
-                                </div>
+                        <h2 class="font-bold mb-4">📷 Scanner / Manual Input</h2>
+                        <div id="reader" class="rounded-lg border-2 border-dashed mb-4 bg-gray-50 overflow-hidden" style="min-height: 250px;"></div>
+                        <div class="space-y-3">
+                            <div class="flex space-x-2">
+                                <input type="text" id="m_nomor_anggota" placeholder="Cek No Anggota..." class="flex-1 border p-2 rounded text-sm">
+                                <button onclick="handleScanAnggota(document.getElementById('m_nomor_anggota').value)" class="bg-blue-600 text-white px-4 py-2 rounded text-xs">CEK</button>
+                                <button onclick="startScan('anggota')" class="bg-gray-800 text-white px-4 py-2 rounded text-xs">SCAN</button>
                             </div>
-                            <div class="p-4 border rounded-lg bg-orange-50">
-                                <label class="block text-xs font-bold text-orange-800 mb-1 uppercase">Kode Buku</label>
-                                <div class="flex space-x-2">
-                                    <input type="text" id="m_kode_buku" placeholder="Ketik Kode Buku..." class="flex-1 border p-2 rounded text-sm">
-                                    <button onclick="handleScanBuku(document.getElementById('m_kode_buku').value)" class="bg-orange-600 text-white px-4 py-2 rounded text-xs font-bold">CEK</button>
-                                    <button onclick="startScan('buku')" class="bg-gray-800 text-white px-3 py-2 rounded text-xs">SCAN</button>
-                                </div>
+                            <div class="flex space-x-2">
+                                <input type="text" id="m_kode_buku" placeholder="Cek Kode Buku..." class="flex-1 border p-2 rounded text-sm">
+                                <button onclick="handleScanBuku(document.getElementById('m_kode_buku').value)" class="bg-orange-600 text-white px-4 py-2 rounded text-xs">CEK</button>
+                                <button onclick="startScan('buku')" class="bg-gray-800 text-white px-4 py-2 rounded text-xs">SCAN</button>
                             </div>
                         </div>
                     </div>
-
                     <div class="space-y-6">
                         <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-500">
-                            <h3 class="font-bold text-gray-700 mb-2 uppercase text-xs">Informasi Peminjam</h3>
-                            <div id="p-detail-anggota" class="p-4 bg-gray-50 rounded italic text-gray-500 text-sm">Belum ada data...</div>
-                            <h3 class="font-bold text-gray-700 mt-6 mb-2 uppercase text-[10px]">Buku yang sedang dipinjam (Maks 3)</h3>
+                            <h3 class="font-bold text-gray-700 text-xs mb-2">STATUS ANGGOTA & PINJAMAN AKTIF (MAKS 3)</h3>
+                            <div id="p-detail-anggota" class="p-3 bg-gray-50 rounded italic text-gray-500 text-xs mb-4">Input anggota...</div>
                             <div id="p-list-pinjaman" class="space-y-2"></div>
                         </div>
                         <div id="form-pinjam-final" class="bg-white p-6 rounded-xl shadow border-t-4 border-orange-500 hidden">
-                            <h3 class="font-bold text-gray-700 mb-2">BUKU TERDETEKSI</h3>
-                            <div id="p-detail-buku" class="p-3 bg-orange-50 rounded text-sm mb-4 border border-orange-200"></div>
-                            <label class="text-xs font-bold">Batas Kembali</label>
-                            <input type="date" id="p-batas" class="w-full border p-2 rounded mb-4">
-                            <button onclick="submitPinjaman()" class="w-full bg-orange-600 text-white py-3 rounded font-bold hover:bg-orange-700 transition">KONFIRMASI PINJAM</button>
+                            <h3 class="font-bold text-gray-700 text-xs mb-2">KONFIRMASI PINJAMAN BUKU</h3>
+                            <div id="p-detail-buku" class="p-3 bg-orange-50 rounded text-xs mb-4"></div>
+                            <input type="date" id="p-batas" class="w-full border p-2 rounded mb-4 text-sm">
+                            <button onclick="submitPinjaman()" class="w-full bg-orange-600 text-white py-3 rounded font-bold transition hover:bg-orange-700">PINJAM SEKARANG</button>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
-
-        <footer class="bg-white p-4 text-center text-gray-500 text-xs border-t mt-10">
-            <p>2026 - Donny Nugroho</p>
-        </footer>
     </section>
 
-    <script src="index.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
