@@ -2,23 +2,25 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Sistem Perpustakaan</title>
+    <title>Sistem Perpustakaan Pro</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 950px; margin: 0 auto; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f0f4f8; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        select, input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-save { background: #2ecc71; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 14px; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
-        th { background: #3498db; color: white; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .manual-input { background: #fff9c4; border: 1px solid #fbc02d; display: none; margin-top: 10px; padding: 10px; border-radius: 6px; }
+        .btn-save { background: #27ae60; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #2980b9; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>📚 Input Data Perpustakaan</h1>
+        <h2>📚 Manajemen Koleksi Perpustakaan</h2>
         <form id="formBuku">
             <div class="form-grid">
                 <div class="form-group">
@@ -29,34 +31,118 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Nomor Klasifikasi</label>
-                    <select id="klasifikasi" required>
-                        <option value="000">000 (Komputer, informasi dan referensi umum)</option>
-                        <option value="100">100 (Filsafat dan psikologi)</option>
-                        <option value="200">200 (Agama)</option>
-                        <option value="300">300 (Ilmu sosial)</option>
-                        <option value="400">400 (Bahasa)</option>
-                        <option value="500">500 (Sains dan Matematika)</option>
-                        <option value="600">600 (Teknologi)</option>
-                        <option value="700">700 (Kesenian dan Rekreasi)</option>
-                        <option value="800">800 (Sastra)</option>
-                        <option value="900">900 (Sejarah dan Geografi)</option>
+                    <label>Nomor Klasifikasi (DDC)</label>
+                    <select id="klasifikasi" onchange="toggleManualInput()" required>
+                        <optgroup label="000 - Pengetahuan Umum">
+                            <option value="000">000 – Pengetahuan Umum & Komputer</option>
+                            <option value="004">004 – Komputer (Hardware)</option>
+                            <option value="005">005 – Pemrograman & Software</option>
+                            <option value="030">030 – Ensiklopedia Umum</option>
+                            <option value="070">070 – Jurnalistik & Majalah</option>
+                        </optgroup>
+                        <optgroup label="100 - Filsafat & Psikologi">
+                            <option value="100">100 – Filsafat & Psikologi</option>
+                            <option value="150">150 – Psikologi Kesehatan</option>
+                            <option value="153">153 – Kecerdasan & Cara Belajar</option>
+                            <option value="155">155 – Psikologi Remaja</option>
+                            <option value="170">170 – Etika & Karakter</option>
+                        </optgroup>
+                        <optgroup label="200 - Agama">
+                            <option value="200">200 – Agama Umum</option>
+                            <option value="297">297 – Agama Islam</option>
+                            <option value="297.1">297.1 – Al-Qur'an</option>
+                            <option value="297.2">297.2 – Akidah & Tauhid</option>
+                            <option value="297.3">297.3 – Fiqih & Ibadah</option>
+                            <option value="297.4">297.4 – Akhlak</option>
+                            <option value="297.9">297.9 – Sejarah Nabi</option>
+                        </optgroup>
+                        <optgroup label="300 - Ilmu Sosial">
+                            <option value="300">300 – Ilmu Sosial</option>
+                            <option value="306">306 – Budaya & Sosiologi</option>
+                            <option value="320">320 – Politik (PKn)</option>
+                            <option value="330">330 – Ekonomi & Kewirausahaan</option>
+                            <option value="340">340 – Hukum (UUD 1945)</option>
+                            <option value="370">370 – Pendidikan</option>
+                            <option value="398">398 – Dongeng & Cerita Rakyat</option>
+                        </optgroup>
+                        <optgroup label="400 - Bahasa">
+                            <option value="400">400 – Bahasa Umum</option>
+                            <option value="410">410 – Linguistik</option>
+                            <option value="420">420 – Bahasa Inggris</option>
+                            <option value="499.21">499.21 – Bahasa Indonesia</option>
+                            <option value="499.22">499.22 – Bahasa Daerah</option>
+                        </optgroup>
+                        <optgroup label="500 - Sains">
+                            <option value="500">500 – Sains Umum</option>
+                            <option value="510">510 – Matematika</option>
+                            <option value="530">530 – Fisika</option>
+                            <option value="540">540 – Kimia</option>
+                            <option value="550">550 – Ilmu Bumi</option>
+                            <option value="570">570 – Biologi</option>
+                            <option value="580">580 – Tumbuhan</option>
+                            <option value="590">590 – Hewan</option>
+                        </optgroup>
+                        <optgroup label="600 - Teknologi">
+                            <option value="600">600 – Teknologi Umum</option>
+                            <option value="610">610 – Kesehatan & Gizi</option>
+                            <option value="620">620 – Teknik & Otomotif</option>
+                            <option value="630">630 – Pertanian</option>
+                            <option value="641">641 – Tata Boga</option>
+                        </optgroup>
+                        <optgroup label="700 - Seni & Olahraga">
+                            <option value="700">700 – Kesenian Umum</option>
+                            <option value="720">720 – Arsitektur</option>
+                            <option value="741">741 – Menggambar & Komik</option>
+                            <option value="780">780 – Musik</option>
+                            <option value="790">790 – Olahraga</option>
+                        </optgroup>
+                        <optgroup label="800 - Sastra">
+                            <option value="800">800 – Sastra Umum</option>
+                            <option value="813">813 – Novel Terjemahan</option>
+                            <option value="899.221">899.221 – Sastra Indonesia</option>
+                            <option value="899.221 1">899.221 1 – Puisi Indonesia</option>
+                            <option value="899.221 2">899.221 2 – Drama Indonesia</option>
+                            <option value="899.221 3">899.221 3 – Fiksi Indonesia</option>
+                        </optgroup>
+                        <optgroup label="900 - Sejarah">
+                            <option value="900">900 – Sejarah & Geografi</option>
+                            <option value="910">910 – Geografi & Atlas</option>
+                            <option value="920">920 – Biografi Tokoh</option>
+                            <option value="959.8">959.8 – Sejarah Indonesia</option>
+                        </optgroup>
+                        <option value="manual" style="font-weight:bold; color:red;">[ + ] Input Manual</option>
                     </select>
+
+                    <div id="manualPanel" class="manual-input">
+                        <label>Nomor Klasifikasi Manual</label>
+                        <input type="text" id="klasifikasi_manual" placeholder="Contoh: 297.5">
+                        <label style="margin-top:10px">Nama Kategori Manual</label>
+                        <input type="text" id="kategori_manual" placeholder="Contoh: Hadits">
+                    </div>
                 </div>
             </div>
+
             <div class="form-group"><label>Nama Pengarang</label><input type="text" id="pengarang" required></div>
             <div class="form-group"><label>Judul Buku</label><input type="text" id="judul" required></div>
+            
             <div class="form-grid">
                 <div class="form-group"><label>ISBN</label><input type="text" id="isbn"></div>
                 <div class="form-group"><label>Penerbit</label><input type="text" id="penerbit"></div>
                 <div class="form-group"><label>Tahun Terbit</label><input type="text" id="tahun_terbit"></div>
-                <div class="form-group"><label>Jumlah Stok (Banyaknya Baris)</label><input type="number" id="stok" value="1" min="1"></div>
+                <div class="form-group"><label>Jumlah Stok (Baris)</label><input type="number" id="stok" value="1" min="1"></div>
             </div>
-            <button type="submit" class="btn-save">💾 Simpan Buku</button>
+            
+            <button type="submit" class="btn-save">💾 SIMPAN KE DATABASE</button>
         </form>
 
-        <div id="listBuku" style="margin-top: 30px;"></div>
+        <div id="listBuku"></div>
     </div>
     <script src="script.js"></script>
+    <script>
+        function toggleManualInput() {
+            const val = document.getElementById('klasifikasi').value;
+            document.getElementById('manualPanel').style.display = (val === 'manual') ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
