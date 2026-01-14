@@ -3,104 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perpus SMAN 2 Cikarang Barat</title>
+    <title>Perpustakaan SMAN 2 Cikarang Barat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        .page-active { display: flex !important; }
-        .tab-active { display: block !important; }
-        .hidden-all { display: none !important; }
+        .hidden-secure { display: none !important; }
+        .active-secure { display: flex !important; }
+        .bg-gradient-custom { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-100 min-h-screen">
 
-    <section id="page-login" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border-t-8 border-blue-700">
-            <h1 class="text-2xl font-black text-center text-blue-900 mb-2 uppercase">Login Admin</h1>
-            <p class="text-center text-xs text-gray-400 mb-8 font-bold">SMAN 2 CIKARANG BARAT</p>
+    <section id="login-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-blue-600">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-blue-900 uppercase">Login Admin</h1>
+                <p class="text-sm text-gray-500 font-bold uppercase">SMAN 2 CIKARANG BARAT</p>
+            </div>
             <div class="space-y-4">
                 <input type="text" id="l-user" placeholder="Username" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
                 <input type="password" id="l-pass" placeholder="Password" class="w-full border-2 p-3 rounded-lg focus:border-blue-500 outline-none">
-                <button onclick="authLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition shadow-lg">MASUK SISTEM</button>
+                <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg uppercase">Masuk</button>
             </div>
-            <p id="l-err" class="text-red-500 text-center text-xs mt-4 hidden font-bold">Username/Password Salah!</p>
+            <p id="l-err" class="text-red-500 text-center text-xs mt-4 hidden font-bold italic">Kredensial Salah!</p>
         </div>
     </section>
 
-    <section id="page-dash" class="hidden-all flex-col min-h-screen">
-        <header class="bg-blue-900 text-white p-6 shadow-md">
+    <section id="dashboard-page" class="hidden-secure flex-col min-h-screen">
+        <header class="bg-gradient-custom text-white p-6 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
-                <h1 class="font-bold uppercase tracking-tight">Perpus SMAN 2 Cikbar</h1>
-                <button onclick="authLogout()" class="bg-red-600 px-4 py-2 rounded text-xs font-bold uppercase shadow-md">Logout</button>
+                <h1 class="text-xl font-bold uppercase tracking-tight">Perpus SMAN 2 Cikbar</h1>
+                <button onclick="logout()" class="bg-red-500 px-4 py-2 rounded text-xs font-bold shadow hover:bg-red-600 transition">LOGOUT</button>
             </div>
         </header>
 
         <main class="container mx-auto mt-6 p-4 flex-grow">
-            <nav class="flex bg-white p-2 rounded-xl shadow mb-6 space-x-2">
-                <button onclick="tab('buku')" id="t-buku" class="flex-1 py-2 rounded font-bold text-xs uppercase transition">Buku</button>
-                <button onclick="tab('anggota')" id="t-anggota" class="flex-1 py-2 rounded font-bold text-xs uppercase transition">Anggota</button>
-                <button onclick="tab('sirkulasi')" id="t-sirkulasi" class="flex-1 py-2 rounded font-bold text-xs uppercase transition">Sirkulasi</button>
+            <nav class="flex space-x-2 mb-6 bg-white p-2 rounded-lg shadow">
+                <button onclick="openTab('buku')" id="btn-buku" class="tab-btn flex-1 py-2 rounded font-bold text-xs uppercase transition">Buku</button>
+                <button onclick="openTab('anggota')" id="btn-anggota" class="tab-btn flex-1 py-2 rounded font-bold text-xs uppercase transition">Anggota</button>
+                <button onclick="openTab('sirkulasi')" id="btn-sirkulasi" class="tab-btn flex-1 py-2 rounded font-bold text-xs uppercase transition">Sirkulasi</button>
             </nav>
 
-            <section id="view-buku" class="hidden-all bg-white p-6 rounded-xl shadow">
-                <h2 class="font-bold text-blue-900 mb-4 border-b pb-2">Master Buku</h2>
-                <form id="f-buku" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <select id="b-klas" class="border p-2 rounded text-sm" onchange="upCat()"><option value="000">000 - Umum</option><option value="500">500 - Sains</option><option value="800">800 - Fiksi</option></select>
-                    <input type="text" id="b-cat" class="border p-2 rounded text-sm bg-gray-50" readonly>
-                    <input type="text" id="b-isbn" placeholder="ISBN" class="border p-2 rounded text-sm">
-                    <input type="text" id="b-jdl" placeholder="Judul Buku" class="md:col-span-2 border p-2 rounded text-sm" required>
-                    <input type="text" id="b-pgr" placeholder="Pengarang" class="border p-2 rounded text-sm" required>
-                    <input type="number" id="b-stok" value="1" class="border p-2 rounded text-sm">
-                    <button type="submit" class="bg-blue-700 text-white font-bold p-2 rounded md:col-span-2 text-xs uppercase">Simpan</button>
+            <section id="view-buku" class="hidden-secure bg-white p-6 rounded-xl shadow">
+                <h2 class="font-bold text-blue-800 mb-4 uppercase text-sm border-b pb-2">Manajemen Buku</h2>
+                <form id="form-buku" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <select id="b-klas" class="border p-2 rounded" onchange="upCat()"><option value="000">000-Umum</option><option value="800">800-Fiksi</option></select>
+                    <input type="text" id="b-cat" placeholder="Kategori" class="border p-2 rounded bg-gray-50" readonly>
+                    <input type="text" id="b-isbn" placeholder="ISBN" class="border p-2 rounded">
+                    <input type="text" id="b-judul" placeholder="Judul Buku" class="md:col-span-2 border p-2 rounded" required>
+                    <input type="text" id="b-pgr" placeholder="Pengarang" class="border p-2 rounded" required>
+                    <input type="number" id="b-stok" value="1" class="border p-2 rounded">
+                    <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold md:col-span-2 text-xs uppercase">Simpan</button>
                 </form>
-                <div class="overflow-x-auto text-[10px]"><table class="w-full border"><thead><tr class="bg-gray-100"><th>Kode</th><th>Judul</th><th>Status</th></tr></thead><tbody id="l-buku"></tbody></table></div>
+                <div class="overflow-x-auto"><table class="w-full text-xs text-left border"><thead class="bg-gray-100"><tr><th class="p-2 border">Kode</th><th class="p-2 border">Judul</th><th class="p-2 border">Status</th></tr></thead><tbody id="l-buku"></tbody></table></div>
             </section>
 
-            <section id="view-anggota" class="hidden-all bg-white p-6 rounded-xl shadow">
-                <h2 class="font-bold text-green-900 mb-4 border-b pb-2">Master Anggota</h2>
-                <form id="f-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <input type="text" id="a-no" placeholder="NIS" class="border p-2 rounded text-sm" required>
-                    <input type="text" id="a-nama" placeholder="Nama Lengkap" class="border p-2 rounded text-sm" required>
-                    <input type="text" id="a-kls" placeholder="Kelas" class="border p-2 rounded text-sm" required>
-                    <button type="submit" class="bg-green-700 text-white font-bold p-2 rounded md:col-span-3 text-xs uppercase">Tambah</button>
+            <section id="view-anggota" class="hidden-secure bg-white p-6 rounded-xl shadow">
+                <h2 class="font-bold text-green-800 mb-4 uppercase text-sm border-b pb-2">Manajemen Anggota</h2>
+                <form id="form-anggota" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <input type="text" id="a-no" placeholder="NIS" class="border p-2 rounded" required>
+                    <input type="text" id="a-nama" placeholder="Nama" class="border p-2 rounded" required>
+                    <input type="text" id="a-kls" placeholder="Kelas" class="border p-2 rounded" required>
+                    <button type="submit" class="bg-green-600 text-white p-2 rounded font-bold md:col-span-3 text-xs uppercase">Tambah</button>
                 </form>
-                <div id="l-anggota" class="text-[10px]"></div>
+                <div id="l-anggota" class="overflow-x-auto text-xs"></div>
             </section>
 
-            <section id="view-sirkulasi" class="hidden-all">
+            <section id="view-sirkulasi" class="hidden-secure">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow">
-                        <h2 class="font-bold mb-4 flex items-center">Scanner QR</h2>
-                        <div id="scanner" class="bg-gray-900 rounded-lg mb-4 overflow-hidden" style="height: 250px;"></div>
+                        <h2 class="font-bold text-xs uppercase mb-4">Scanner QR</h2>
+                        <div id="reader" class="bg-gray-50 rounded-lg border-2 border-dashed mb-4" style="height: 250px;"></div>
                         <div class="space-y-4">
-                            <div class="flex space-x-2">
-                                <input type="text" id="in-anggota" placeholder="NIS..." class="flex-1 border p-2 rounded text-sm">
-                                <button onclick="cekAng(document.getElementById('in-anggota').value)" class="bg-blue-600 text-white px-4 text-xs font-bold rounded">Cek</button>
-                                <button onclick="sc('anggota')" class="bg-gray-800 text-white px-4 text-xs font-bold rounded">Scan</button>
-                            </div>
-                            <div class="flex space-x-2">
-                                <input type="text" id="in-buku" placeholder="Kode Buku..." class="flex-1 border p-2 rounded text-sm">
-                                <button onclick="cekBuk(document.getElementById('in-buku').value)" class="bg-orange-600 text-white px-4 text-xs font-bold rounded">Cek</button>
-                                <button onclick="sc('buku')" class="bg-gray-800 text-white px-4 text-xs font-bold rounded">Scan</button>
-                            </div>
+                            <div class="flex space-x-2"><input type="text" id="in-ang" placeholder="NIS..." class="flex-1 border p-2 rounded text-sm"><button onclick="cekAng(document.getElementById('in-ang').value)" class="bg-blue-600 text-white px-4 text-xs font-bold rounded">CEK</button><button onclick="scan('anggota')" class="bg-gray-800 text-white px-4 text-xs font-bold rounded">SCAN</button></div>
+                            <div class="flex space-x-2"><input type="text" id="in-buk" placeholder="Kode Buku..." class="flex-1 border p-2 rounded text-sm"><button onclick="cekBuk(document.getElementById('in-buk').value)" class="bg-orange-600 text-white px-4 text-xs font-bold rounded">CEK</button><button onclick="scan('buku')" class="bg-gray-800 text-white px-4 text-xs font-bold rounded">SCAN</button></div>
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-600">
                             <h3 class="font-bold text-xs mb-4 uppercase">Status Peminjam (Maks 3)</h3>
-                            <div id="det-ang" class="p-3 bg-gray-50 border border-dashed rounded text-xs mb-4">Input NIS anggota...</div>
+                            <div id="det-ang" class="p-3 bg-gray-50 border border-dashed rounded text-[10px] mb-4">Pilih anggota...</div>
                             <div id="det-sl" class="space-y-2"></div>
                         </div>
-                        <div id="box-pinjam" class="bg-white p-6 rounded-xl shadow border-t-4 border-orange-600 hidden">
-                            <h3 class="font-bold text-xs mb-2">BUKU TERDETEKSI</h3>
-                            <div id="det-bk" class="p-3 bg-orange-50 text-xs border border-orange-200 rounded mb-4"></div>
+                        <div id="form-pj" class="bg-white p-6 rounded-xl shadow border-t-4 border-orange-600 hidden">
+                            <h3 class="font-bold text-xs mb-2 uppercase">Informasi Buku</h3>
+                            <div id="det-bk" class="p-3 bg-orange-50 text-[10px] rounded mb-4"></div>
                             <input type="date" id="in-tgl" class="w-full border p-2 rounded text-sm mb-4">
-                            <button onclick="pinjam()" class="w-full bg-orange-600 text-white font-bold py-3 rounded uppercase text-sm shadow">Konfirmasi Pinjam</button>
+                            <button onclick="pinjam()" class="w-full bg-orange-600 text-white font-bold py-3 rounded text-sm uppercase">Pinjam</button>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
+
+        <footer class="p-6 text-center text-[10px] text-gray-400 font-bold border-t bg-white uppercase">
+            &copy; 2026 Perpustakaan Terpadu SMAN 2 Cikarang Barat - Versi 2.0
+        </footer>
     </section>
 
     <script src="script.js"></script>
