@@ -2,31 +2,30 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Perpustakaan</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f7f6; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        select, input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; }
-        .btn-save { background: #28a745; }
-        .btn-delete { background: #dc3545; padding: 5px 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #f8f9fa; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-save { background: #2ecc71; color: white; width: 100%; }
+        .btn-delete { background: #e74c3c; color: white; padding: 5px 10px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background: #3498db; color: white; }
+        .success-msg { color: #27ae60; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Input Buku</h2>
-        <div id="message"></div>
+        <h1>📚 Sistem Perpustakaan</h1>
         <form id="formBuku">
             <div class="form-group">
                 <label>Kode Panggil</label>
                 <select id="kode_panggil" required>
-                    <option value="">-- Pilih --</option>
+                    <option value="">-- Pilih Kode Panggil --</option>
                     <option value="SR">SR (Sirkulasi)</option>
                     <option value="RF">RF (Referensi)</option>
                 </select>
@@ -34,7 +33,7 @@
             <div class="form-group">
                 <label>Nomor Klasifikasi</label>
                 <select id="klasifikasi" required>
-                    <option value="">-- Pilih --</option>
+                    <option value="">-- Pilih Nomor Klasifikasi --</option>
                     <option value="000">000 (Komputer, informasi dan referensi umum)</option>
                     <option value="100">100 (Filsafat dan psikologi)</option>
                     <option value="200">200 (Agama)</option>
@@ -49,24 +48,24 @@
             </div>
             <div class="form-group">
                 <label>Nama Pengarang</label>
-                <input type="text" id="pengarang" required>
+                <input type="text" id="pengarang" placeholder="Contoh: Donny Nurhamsyah" required>
             </div>
             <div class="form-group">
                 <label>Judul Buku</label>
-                <input type="text" id="judul" required>
+                <input type="text" id="judul" placeholder="Contoh: Belajar Cloudflare" required>
             </div>
             <div class="form-group">
-                <label>ISBN (Opsional)</label>
-                <input type="text" id="isbn">
+                <label>ISBN</label>
+                <input type="text" id="isbn" placeholder="Opsional">
             </div>
-            <button type="submit" class="btn btn-save">💾 Simpan Buku</button>
+            <button type="submit" class="btn btn-save">💾 Simpan Data Buku</button>
         </form>
 
-        <hr style="margin: 30px 0;">
-        <h3>Daftar Koleksi</h3>
-        <div id="listBuku"></div>
+        <div style="margin-top: 40px;">
+            <h3>📖 Daftar Koleksi Buku</h3>
+            <div id="listBuku">Memuat data...</div>
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
