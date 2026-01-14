@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', loadBuku);
 
 document.getElementById('formBuku').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
+
     const data = {
         kode_panggil: document.getElementById('kode_panggil').value,
         klasifikasi: document.getElementById('klasifikasi').value,
@@ -12,7 +16,7 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
         isbn: document.getElementById('isbn').value,
         penerbit: document.getElementById('penerbit').value,
         tahun_terbit: document.getElementById('tahun_terbit').value,
-        stok: parseInt(document.getElementById('stok').value) || 1
+        stok: document.getElementById('stok').value // Jumlah baris yang akan dibuat
     };
 
     try {
@@ -22,8 +26,9 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
             body: JSON.stringify(data)
         });
         if (res.ok) {
-            alert('✅ Data Berhasil Masuk!');
+            alert('✅ Berhasil menyimpan ' + data.stok + ' data buku!');
             document.getElementById('formBuku').reset();
+            document.getElementById('stok').value = 1;
             loadBuku();
         } else {
             const err = await res.json();
@@ -31,6 +36,9 @@ document.getElementById('formBuku').addEventListener('submit', async (e) => {
         }
     } catch (e) {
         alert('❌ Koneksi Gagal');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Simpan Buku';
     }
 });
 
@@ -46,7 +54,7 @@ async function loadBuku() {
                 '<td>' + b.kategori + '</td>' +
                 '<td>' + b.judul + '</td>' +
                 '<td>' + (b.penerbit || '-') + ' (' + (b.tahun_terbit || '-') + ')</td>' +
-                '<td><button onclick="hapusBuku(' + b.id + ')" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">Hapus</button></td>' +
+                '<td><button onclick="hapusBuku(' + b.id + ')" style="background:red; color:white; border:none; padding:5px; cursor:pointer; border-radius:3px;">Hapus</button></td>' +
             '</tr>';
         });
         document.getElementById('listBuku').innerHTML = html + '</tbody></table>';
@@ -56,7 +64,7 @@ async function loadBuku() {
 }
 
 async function hapusBuku(id) {
-    if (!confirm('Hapus?')) return;
+    if (!confirm('Hapus data koleksi ini?')) return;
     const res = await fetch(API_URL + '/buku/' + id, { method: 'DELETE' });
     if (res.ok) loadBuku();
 }
