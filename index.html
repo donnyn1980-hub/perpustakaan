@@ -11,98 +11,116 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         select, input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .btn-save { background: #2ecc71; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-logout { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: right; }
         table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 14px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
         th { background: #3498db; color: white; }
+        #login-container { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>📚 Input Data Perpustakaan</h1>
-        <form id="formBuku">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Kode Panggil</label>
-                    <select id="kode_panggil" required>
-                        <option value="SR">SR (Sirkulasi)</option>
-                        <option value="RF">RF (Referensi)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Nomor Klasifikasi & Kategori</label>
-                    <select id="klasifikasi_lengkap" required>
-                        <option value="000 – Pengetahuan Umum & Komputer">000 – Pengetahuan Umum & Komputer</option>
-                        <option value="004 – Komputer (Hardware, Dasar-dasar Komputer)">004 – Komputer (Hardware, Dasar-dasar Komputer)</option>
-                        <option value="005 – Pemrograman & Software (Word, Excel, Coding)">005 – Pemrograman & Software (Word, Excel, Coding)</option>
-                        <option value="030 – Ensiklopedia Umum & Buku Kumpulan Fakta">030 – Ensiklopedia Umum & Buku Kumpulan Fakta</option>
-                        <option value="070 – Jurnalistik & Majalah Sekolah">070 – Jurnalistik & Majalah Sekolah</option>
-                        <option value="100 – Filsafat & Psikologi">100 – Filsafat & Psikologi</option>
-                        <option value="150 – Psikologi (Kesehatan Mental, Kepribadian)">150 – Psikologi (Kesehatan Mental, Kepribadian)</option>
-                        <option value="153 – Kecerdasan & Cara Belajar (Tips Belajar, Mengingat)">153 – Kecerdasan & Cara Belajar (Tips Belajar, Mengingat)</option>
-                        <option value="155 – Psikologi Remaja (Pertumbuhan & Identitas)">155 – Psikologi Remaja (Pertumbuhan & Identitas)</option>
-                        <option value="170 – Etika & Karakter (Budi Pekerti, Sopan Santun)">170 – Etika & Karakter (Budi Pekerti, Sopan Santun)</option>
-                        <option value="200 – Agama">200 – Agama</option>
-                        <option value="297 – Agama Islam">297 – Agama Islam</option>
-                        <option value="297.1 – Al-Qur'an & Ilmu Terkait">297.1 – Al-Qur'an & Ilmu Terkait</option>
-                        <option value="297.2 – Akidah & Tauhid">297.2 – Akidah & Tauhid</option>
-                        <option value="297.3 – Fiqih & Ibadah (Shalat, Zakat, dll.)">297.3 – Fiqih & Ibadah (Shalat, Zakat, dll.)</option>
-                        <option value="297.4 – Akhlak">297.4 – Akhlak</option>
-                        <option value="297.9 – Sejarah Nabi & Islam">297.9 – Sejarah Nabi & Islam</option>
-                        <option value="300 – Ilmu Sosial">300 – Ilmu Sosial</option>
-                        <option value="306 – Budaya & Sosiologi">306 – Budaya & Sosiologi</option>
-                        <option value="320 – Politik & Pemerintahan (PKn)">320 – Politik & Pemerintahan (PKn)</option>
-                        <option value="330 – Ekonomi & Kewirausahaan">330 – Ekonomi & Kewirausahaan</option>
-                        <option value="340 – Hukum (UUD 1945, Peraturan Sekolah)">340 – Hukum (UUD 1945, Peraturan Sekolah)</option>
-                        <option value="370 – Pendidikan (Buku Panduan Guru, Metode Belajar)">370 – Pendidikan (Buku Panduan Guru, Metode Belajar)</option>
-                        <option value="398 – Dongeng, Legenda, & Cerita Rakyat">398 – Dongeng, Legenda, & Cerita Rakyat</option>
-                        <option value="400 – Bahasa">400 – Bahasa</option>
-                        <option value="410 – Linguistik (Tata Bahasa)">410 – Linguistik (Tata Bahasa)</option>
-                        <option value="420 – Bahasa Inggris (Kamus, Grammar)">420 – Bahasa Inggris (Kamus, Grammar)</option>
-                        <option value="499.21 – Bahasa Indonesia (Kamus Besar, EYD)">499.21 – Bahasa Indonesia (Kamus Besar, EYD)</option>
-                        <option value="499.22 – Bahasa Daerah (Sunda, Jawa, dll.)">499.22 – Bahasa Daerah (Sunda, Jawa, dll.)</option>
-                        <option value="500 – Ilmu Murni (Sains)">500 – Ilmu Murni (Sains)</option>
-                        <option value="510 – Matematika">510 – Matematika</option>
-                        <option value="530 – Fisika">530 – Fisika</option>
-                        <option value="540 – Kimia">540 – Kimia</option>
-                        <option value="550 – Ilmu Bumi & Antariksa (Geologi, Cuaca)">550 – Ilmu Bumi & Antariksa (Geologi, Cuaca)</option>
-                        <option value="570 – Biologi">570 – Biologi</option>
-                        <option value="580 – Tanaman & Tumbuhan">580 – Tanaman & Tumbuhan</option>
-                        <option value="590 – Hewan & Binatang">590 – Hewan & Binatang</option>
-                        <option value="600 – Teknologi & Ilmu Terapan">600 – Teknologi & Ilmu Terapan</option>
-                        <option value="610 – Kesehatan & Kedokteran (Penyakit, Gizi, P3K)">610 – Kesehatan & Kedokteran (Penyakit, Gizi, P3K)</option>
-                        <option value="620 – Teknik (Robotika, Otomotif)">620 – Teknik (Robotika, Otomotif)</option>
-                        <option value="630 – Pertanian, Perkebunan, & Perikanan">630 – Pertanian, Perkebunan, & Perikanan</option>
-                        <option value="641 – Tata Boga (Resep Masakan & Minuman)">641 – Tata Boga (Resep Masakan & Minuman)</option>
-                        <option value="700 – Kesenian & Olahraga">700 – Kesenian & Olahraga</option>
-                        <option value="720 – Arsitektur">720 – Arsitektur</option>
-                        <option value="741 – Menggambar & Komik (Teknik Menggambar)">741 – Menggambar & Komik (Teknik Menggambar)</option>
-                        <option value="780 – Musik (Alat Musik, Teori Musik)">780 – Musik (Alat Musik, Teori Musik)</option>
-                        <option value="790 – Olahraga (Sepak Bola, Basket, Bulutangkis)">790 – Olahraga (Sepak Bola, Basket, Bulutangkis)</option>
-                        <option value="800 – Kesusastraan">800 – Kesusastraan</option>
-                        <option value="813 – Novel/Fiksi Terjemahan">813 – Novel/Fiksi Terjemahan</option>
-                        <option value="899.221 – Kesusastraan Indonesia">899.221 – Kesusastraan Indonesia</option>
-                        <option value="899.221 1 – Puisi Indonesia">899.221 1 – Puisi Indonesia</option>
-                        <option value="899.221 2 – Drama Indonesia">899.221 2 – Drama Indonesia</option>
-                        <option value="899.221 3 – Fiksi/Novel Indonesia">899.221 3 – Fiksi/Novel Indonesia</option>
-                        <option value="900 – Sejarah & Geografi">900 – Sejarah & Geografi</option>
-                        <option value="910 – Geografi & Peta (Atlas, Perjalanan)">910 – Geografi & Peta (Atlas, Perjalanan)</option>
-                        <option value="920 – Biografi Tokoh (Pahlawan, Ilmuwan, Pengusaha)">920 – Biografi Tokoh (Pahlawan, Ilmuwan, Pengusaha)</option>
-                        <option value="959.8 – Sejarah Indonesia">959.8 – Sejarah Indonesia</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group"><label>Nama Pengarang</label><input type="text" id="pengarang" required></div>
-            <div class="form-group"><label>Judul Buku</label><input type="text" id="judul" required></div>
-            <div class="form-grid">
-                <div class="form-group"><label>ISBN</label><input type="text" id="isbn"></div>
-                <div class="form-group"><label>Penerbit</label><input type="text" id="penerbit"></div>
-                <div class="form-group"><label>Tahun Terbit</label><input type="text" id="tahun_terbit"></div>
-                <div class="form-group"><label>Jumlah Stok (Banyaknya Baris)</label><input type="number" id="stok" value="1" min="1"></div>
-            </div>
-            <button type="submit" class="btn-save">💾 Simpan Buku</button>
-        </form>
+    <div id="login-container">
+        <h2 style="text-align: center;">🔐 Login Admin</h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="user_login">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="pass_login">
+        </div>
+        <button onclick="handleLogin()" class="btn-save">Masuk</button>
+    </div>
 
-        <div id="listBuku" style="margin-top: 30px;"></div>
+    <div id="main-content" class="hidden">
+        <div class="card">
+            <button onclick="handleLogout()" class="btn-logout">Keluar</button>
+            <h1>📚 Input Data Perpustakaan</h1>
+            <form id="formBuku">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Kode Panggil</label>
+                        <select id="kode_panggil" required>
+                            <option value="SR">SR (Sirkulasi)</option>
+                            <option value="RF">RF (Referensi)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor Klasifikasi & Kategori</label>
+                        <select id="klasifikasi_lengkap" required>
+                            <option value="000 – Pengetahuan Umum & Komputer">000 – Pengetahuan Umum & Komputer</option>
+                            <option value="004 – Komputer (Hardware, Dasar-dasar Komputer)">004 – Komputer (Hardware, Dasar-dasar Komputer)</option>
+                            <option value="005 – Pemrograman & Software (Word, Excel, Coding)">005 – Pemrograman & Software (Word, Excel, Coding)</option>
+                            <option value="030 – Ensiklopedia Umum & Buku Kumpulan Fakta">030 – Ensiklopedia Umum & Buku Kumpulan Fakta</option>
+                            <option value="070 – Jurnalistik & Majalah Sekolah">070 – Jurnalistik & Majalah Sekolah</option>
+                            <option value="100 – Filsafat & Psikologi">100 – Filsafat & Psikologi</option>
+                            <option value="150 – Psikologi (Kesehatan Mental, Kepribadian)">150 – Psikologi (Kesehatan Mental, Kepribadian)</option>
+                            <option value="153 – Kecerdasan & Cara Belajar (Tips Belajar, Mengingat)">153 – Kecerdasan & Cara Belajar (Tips Belajar, Mengingat)</option>
+                            <option value="155 – Psikologi Remaja (Pertumbuhan & Identitas)">155 – Psikologi Remaja (Pertumbuhan & Identitas)</option>
+                            <option value="170 – Etika & Karakter (Budi Pekerti, Sopan Santun)">170 – Etika & Karakter (Budi Pekerti, Sopan Santun)</option>
+                            <option value="200 – Agama">200 – Agama</option>
+                            <option value="297 – Agama Islam">297 – Agama Islam</option>
+                            <option value="297.1 – Al-Qur'an & Ilmu Terkait">297.1 – Al-Qur'an & Ilmu Terkait</option>
+                            <option value="297.2 – Akidah & Tauhid">297.2 – Akidah & Tauhid</option>
+                            <option value="297.3 – Fiqih & Ibadah (Shalat, Zakat, dll.)">297.3 – Fiqih & Ibadah (Shalat, Zakat, dll.)</option>
+                            <option value="297.4 – Akhlak">297.4 – Akhlak</option>
+                            <option value="297.9 – Sejarah Nabi & Islam">297.9 – Sejarah Nabi & Islam</option>
+                            <option value="300 – Ilmu Sosial">300 – Ilmu Sosial</option>
+                            <option value="306 – Budaya & Sosiologi">306 – Budaya & Sosiologi</option>
+                            <option value="320 – Politik & Pemerintahan (PKn)">320 – Politik & Pemerintahan (PKn)</option>
+                            <option value="330 – Ekonomi & Kewirausahaan">330 – Ekonomi & Kewirausahaan</option>
+                            <option value="340 – Hukum (UUD 1945, Peraturan Sekolah)">340 – Hukum (UUD 1945, Peraturan Sekolah)</option>
+                            <option value="370 – Pendidikan (Buku Panduan Guru, Metode Belajar)">370 – Pendidikan (Buku Panduan Guru, Metode Belajar)</option>
+                            <option value="398 – Dongeng, Legenda, & Cerita Rakyat">398 – Dongeng, Legenda, & Cerita Rakyat</option>
+                            <option value="400 – Bahasa">400 – Bahasa</option>
+                            <option value="410 – Linguistik (Tata Bahasa)">410 – Linguistik (Tata Bahasa)</option>
+                            <option value="420 – Bahasa Inggris (Kamus, Grammar)">420 – Bahasa Inggris (Kamus, Grammar)</option>
+                            <option value="499.21 – Bahasa Indonesia (Kamus Besar, EYD)">499.21 – Bahasa Indonesia (Kamus Besar, EYD)</option>
+                            <option value="499.22 – Bahasa Daerah (Sunda, Jawa, dll.)">499.22 – Bahasa Daerah (Sunda, Jawa, dll.)</option>
+                            <option value="500 – Ilmu Murni (Sains)">500 – Ilmu Murni (Sains)</option>
+                            <option value="510 – Matematika">510 – Matematika</option>
+                            <option value="530 – Fisika">530 – Fisika</option>
+                            <option value="540 – Kimia">540 – Kimia</option>
+                            <option value="550 – Ilmu Bumi & Antariksa (Geologi, Cuaca)">550 – Ilmu Bumi & Antariksa (Geologi, Cuaca)</option>
+                            <option value="570 – Biologi">570 – Biologi</option>
+                            <option value="580 – Tanaman & Tumbuhan">580 – Tanaman & Tumbuhan</option>
+                            <option value="590 – Hewan & Binatang">590 – Hewan & Binatang</option>
+                            <option value="600 – Teknologi & Ilmu Terapan">600 – Teknologi & Ilmu Terapan</option>
+                            <option value="610 – Kesehatan & Kedokteran (Penyakit, Gizi, P3K)">610 – Kesehatan & Kedokteran (Penyakit, Gizi, P3K)</option>
+                            <option value="620 – Teknik (Robotika, Otomotif)">620 – Teknik (Robotika, Otomotif)</option>
+                            <option value="630 – Pertanian, Perkebunan, & Perikanan">630 – Pertanian, Perkebunan, & Perikanan</option>
+                            <option value="641 – Tata Boga (Resep Masakan & Minuman)">641 – Tata Boga (Resep Masakan & Minuman)</option>
+                            <option value="700 – Kesenian & Olahraga">700 – Kesenian & Olahraga</option>
+                            <option value="720 – Arsitektur">720 – Arsitektur</option>
+                            <option value="741 – Menggambar & Komik (Teknik Menggambar)">741 – Menggambar & Komik (Teknik Menggambar)</option>
+                            <option value="780 – Musik (Alat Musik, Teori Musik)">780 – Musik (Alat Musik, Teori Musik)</option>
+                            <option value="790 – Olahraga (Sepak Bola, Basket, Bulutangkis)">790 – Olahraga (Sepak Bola, Basket, Bulutangkis)</option>
+                            <option value="800 – Kesusastraan">800 – Kesusastraan</option>
+                            <option value="813 – Novel/Fiksi Terjemahan">813 – Novel/Fiksi Terjemahan</option>
+                            <option value="899.221 – Kesusastraan Indonesia">899.221 – Kesusastraan Indonesia</option>
+                            <option value="899.221 1 – Puisi Indonesia">899.221 1 – Puisi Indonesia</option>
+                            <option value="899.221 2 – Drama Indonesia">899.221 2 – Drama Indonesia</option>
+                            <option value="899.221 3 – Fiksi/Novel Indonesia">899.221 3 – Fiksi/Novel Indonesia</option>
+                            <option value="900 – Sejarah & Geografi">900 – Sejarah & Geografi</option>
+                            <option value="910 – Geografi & Peta (Atlas, Perjalanan)">910 – Geografi & Peta (Atlas, Perjalanan)</option>
+                            <option value="920 – Biografi Tokoh (Pahlawan, Ilmuwan, Pengusaha)">920 – Biografi Tokoh (Pahlawan, Ilmuwan, Pengusaha)</option>
+                            <option value="959.8 – Sejarah Indonesia">959.8 – Sejarah Indonesia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Nama Pengarang</label><input type="text" id="pengarang" required></div>
+                <div class="form-group"><label>Judul Buku</label><input type="text" id="judul" required></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>ISBN</label><input type="text" id="isbn"></div>
+                    <div class="form-group"><label>Penerbit</label><input type="text" id="penerbit"></div>
+                    <div class="form-group"><label>Tahun Terbit</label><input type="text" id="tahun_terbit"></div>
+                    <div class="form-group"><label>Jumlah Stok</label><input type="number" id="stok" value="1" min="1"></div>
+                </div>
+                <button type="submit" class="btn-save">💾 Simpan Buku</button>
+            </form>
+            <div id="listBuku" style="margin-top: 30px;"></div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
