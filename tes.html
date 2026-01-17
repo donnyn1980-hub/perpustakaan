@@ -1,0 +1,50 @@
+// Tambahkan endpoint login admin di worker2.js (di bagian routing API):
+
+// 6. LOGIN ADMIN
+if (path === "/api/admin/login" && request.method === "POST") {
+    try {
+        const { user, pwd } = await request.json();
+        
+        if (!user || !pwd) {
+            return Response.json({ 
+                success: false, 
+                message: "Username dan password diperlukan" 
+            }, { 
+                status: 400,
+                headers: { 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+        
+        // Cari admin di database
+        const admin = await DB.prepare(
+            "SELECT * FROM admin WHERE user = ? AND pwd = ?"
+        ).bind(user, pwd).first();
+        
+        if (admin) {
+            return Response.json({ 
+                success: true, 
+                message: "Login berhasil",
+                admin_name: admin.user,
+                admin_id: admin.id
+            }, {
+                headers: { 'Access-Control-Allow-Origin': '*' }
+            });
+        } else {
+            return Response.json({ 
+                success: false, 
+                message: "Username atau password salah" 
+            }, { 
+                status: 401,
+                headers: { 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+    } catch (err) {
+        return Response.json({ 
+            success: false, 
+            message: "Gagal memproses login: " + err.message 
+        }, { 
+            status: 500,
+            headers: { 'Access-Control-Allow-Origin': '*' }
+        });
+    }
+}
