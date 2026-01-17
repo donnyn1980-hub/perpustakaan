@@ -2,164 +2,132 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Label Perpustakaan</title>
+    <title>Sistem Cetak Label Perpustakaan A4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Pengaturan Cetak A4 */
         @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea {
-                position: absolute;
-                left: 0; top: 0;
-                width: 210mm;
-                height: 297mm;
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: repeat(3, 1fr);
-                gap: 0;
-                padding: 10mm;
+            body { background: white; margin: 0; }
+            .no-print { display: none !important; }
+            #printArea { 
+                display: grid !important; 
+                grid-template-columns: 1fr 1fr; /* 2 kolom */
+                grid-template-rows: repeat(3, 1fr); /* 3 baris = total 6 label */
+                width: 210mm; height: 297mm;
+                padding: 10mm; gap: 5mm;
             }
             .label-box {
-                border: 1px solid #000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 10px;
-                box-sizing: border-box;
-                height: 90mm; /* Estimasi 1/3 dari tinggi A4 minus padding */
-                page-break-inside: avoid;
+                border: 1px solid black;
+                display: flex; align-items: center; justify-content: center;
+                padding: 20px; page-break-inside: avoid;
+                height: 85mm;
             }
         }
-        .kode-text {
-            flex: 1;
-            font-size: 20pt;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-            text-transform: uppercase;
+        #printArea { display: none; }
+        .kode-panggil { 
+            flex: 1; text-align: center; font-weight: bold; 
+            font-size: 24pt; line-height: 1.2; text-transform: uppercase;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-100 text-slate-900">
 
     <div id="login-screen" class="flex items-center justify-center min-h-screen">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border border-slate-200">
             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Admin Login</h2>
             <div class="space-y-4">
-                <input type="text" id="u" placeholder="Username" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="password" id="p" placeholder="Password" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">MASUK</button>
+                <input type="text" id="userInput" placeholder="Username" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="pwdInput" placeholder="Password" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="doLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">MASUK</button>
             </div>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden p-6 max-w-4xl mx-auto">
+    <div id="dashboard" class="hidden p-6 max-w-4xl mx-auto no-print">
         <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm border">
-            <div>
-                <h1 class="text-xl font-bold">Daftar Kode Buku</h1>
-                <p class="text-sm text-slate-500 italic">Pilih buku untuk dicetak ke label A4</p>
-            </div>
-            <button onclick="preparePrint()" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold shadow-md hover:bg-emerald-700">CETAK TERPILIH</button>
+            <h1 class="text-xl font-bold">Daftar Buku (Tabel: buku)</h1>
+            <button onclick="prosesCetak()" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 shadow-md">CETAK 6 LABEL A4</button>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b">
                     <tr>
                         <th class="p-4 w-12 text-center"><input type="checkbox" id="masterCb" onchange="toggleAll(this)"></th>
-                        <th class="p-4 font-bold">KODE BUKU (D1)</th>
+                        <th class="p-4">KODE BUKU</th>
                     </tr>
                 </thead>
-                <tbody id="book-table" class="divide-y font-mono">
-                    <tr><td colspan="2" class="p-4 text-center">Memuat data...</td></tr>
-                </tbody>
+                <tbody id="book-list" class="divide-y font-mono"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="printArea" class="hidden"></div>
+    <div id="printArea"></div>
 
     <script>
-        const WORKER_URL = ""; // Kosongkan jika HTML ini di-render oleh Worker, atau isi URL jika dipisah
+        // GANTI DENGAN URL WORKER ANDA
+        const WORKER_URL = "https://admin-perpus.donnyn1980.workers.dev";
 
-        async function handleLogin() {
-            const user = document.getElementById('u').value;
-            const pwd = document.getElementById('p').value;
+        async function doLogin() {
+            const user = document.getElementById('userInput').value;
+            const pwd = document.getElementById('pwdInput').value;
 
-            const res = await fetch(`${WORKER_URL}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user, pwd })
-            });
+            try {
+                const res = await fetch(`${WORKER_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pwd })
+                });
 
-            if (res.ok) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                loadBooks();
-            } else {
-                Swal.fire('Gagal', 'Kombinasi User/Pwd salah.', 'error');
+                if (res.ok) {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    loadBooks();
+                } else {
+                    Swal.fire('Gagal', 'User atau Password di tabel admin tidak sesuai.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal terhubung ke Worker. Cek CORS atau URL.', 'error');
             }
         }
 
         async function loadBooks() {
             const res = await fetch(`${WORKER_URL}/api/buku`);
             const data = await res.json();
-            const tbody = document.getElementById('book-table');
-            
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" class="p-4 text-center">Tidak ada data di tabel buku.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = data.map(b => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="book-cb w-5 h-5 cursor-pointer"></td>
+            document.getElementById('book-list').innerHTML = data.map(b => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="b-cb"></td>
                     <td class="p-4 font-bold text-blue-700 uppercase">${b.kode_buku}</td>
                 </tr>
             `).join('');
         }
 
         function toggleAll(el) {
-            document.querySelectorAll('.book-cb').forEach(cb => cb.checked = el.checked);
+            document.querySelectorAll('.b-cb').forEach(c => c.checked = el.checked);
         }
 
-        function preparePrint() {
-            const selected = Array.from(document.querySelectorAll('.book-cb:checked')).map(cb => cb.value);
-            if (selected.length === 0) return Swal.fire('Pilih Buku', 'Centang buku yang ingin dicetak!', 'warning');
+        function prosesCetak() {
+            const terpilih = Array.from(document.querySelectorAll('.b-cb:checked')).map(c => c.value);
+            if (terpilih.length === 0) return Swal.fire('Info', 'Pilih buku dahulu.', 'info');
 
-            const printArea = document.getElementById('printArea');
-            printArea.innerHTML = '';
+            const area = document.getElementById('printArea');
+            area.innerHTML = '';
 
-            selected.forEach((kode, index) => {
-                const label = document.createElement('div');
-                label.className = 'label-box';
+            terpilih.forEach((kode, i) => {
+                const box = document.createElement('div');
+                box.className = 'label-box';
+                // Konversi titik ke baris baru, Bold, dan Center
+                const textFormatted = kode.split('.').join('<br>');
                 
-                // Konversi titik menjadi baris baru (\n)
-                const formattedText = kode.split('.').join('<br>');
+                box.innerHTML = `<div id="q-${i}" style="width:140px;height:140px;"></div><div class="kode-panggil">${textFormatted}</div>`;
+                area.appendChild(box);
 
-                label.innerHTML = `
-                    <div id="qr-${index}" class="flex-shrink-0"></div>
-                    <div class="kode-text">${formattedText}</div>
-                `;
-                printArea.appendChild(label);
-
-                // Generate QR Code
-                new QRCode(document.getElementById(`qr-${index}`), {
-                    text: kode,
-                    width: 140,
-                    height: 140,
-                    correctLevel: QRCode.CorrectLevel.H
+                new QRCode(document.getElementById(`q-${i}`), {
+                    text: kode, width: 140, height: 140, correctLevel: QRCode.CorrectLevel.H
                 });
             });
 
-            // Beri waktu sebentar agar QR Code selesai di-render sebelum print dialog muncul
-            setTimeout(() => {
-                window.print();
-            }, 1000);
+            setTimeout(() => { window.print(); }, 1000);
         }
     </script>
 </body>
