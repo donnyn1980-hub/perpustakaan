@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Perpustakaan - Cetak Label</title>
+    <title>Admin Perpus - Cetak Label A4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @media print {
             @page { size: A4; margin: 0; }
-            body { margin: 0; background: white; }
+            body { background: white; }
             .no-print { display: none !important; }
             #printArea { display: grid !important; }
         }
@@ -22,69 +22,78 @@
             height: 297mm;
             padding: 10mm;
             box-sizing: border-box;
-            gap: 5mm;
+            gap: 10mm;
         }
         .label-box {
-            border: 2px solid black;
-            padding: 15px;
+            border: 2px solid #000;
+            padding: 20px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
+            justify-content: space-between;
+            background: white;
             page-break-inside: avoid;
         }
-        .kode-text {
-            font-size: 20pt;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-            flex: 1;
-        }
+        .kode-text { font-size: 22pt; font-weight: bold; text-align: center; flex: 1; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <div id="login-screen" class="flex items-center justify-center min-h-screen">
+    <div id="login-section" class="flex items-center justify-center min-h-screen">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border border-slate-200">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Admin Login</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-indigo-600">Admin Login</h2>
             <div class="space-y-4">
-                <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <button onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">LOGIN</button>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="user" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="relative">
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="pass" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-9 text-slate-500 hover:text-indigo-600">
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md">MASUK</button>
             </div>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden p-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm">
-                <h1 class="text-xl font-bold">Data Buku untuk Label A4</h1>
-                <button onclick="preparePrint()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition">
-                    CETAK LABEL
-                </button>
-            </div>
+    <div id="main-app" class="hidden p-6 max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm border">
+            <h1 class="text-xl font-bold">Data Buku Perpustakaan</h1>
+            <button onclick="printSelected()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold shadow-sm transition">
+                CETAK LABEL (A4)
+            </button>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <table class="w-full">
-                    <thead class="bg-slate-50 border-b">
-                        <tr>
-                            <th class="p-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelect(this)"></th>
-                            <th class="p-4 text-left">Kode Buku</th>
-                        </tr>
-                    </thead>
-                    <tbody id="book-list" class="divide-y">
-                        </tbody>
-                </table>
-            </div>
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-slate-50 border-b">
+                    <tr>
+                        <th class="p-4 w-12 text-center"><input type="checkbox" id="master-check" onchange="toggleAll(this)"></th>
+                        <th class="p-4 text-left font-semibold">Kode Buku</th>
+                    </tr>
+                </thead>
+                <tbody id="book-list" class="divide-y divide-slate-100 text-slate-700 font-mono">
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <div id="printArea" class="hidden text-black bg-white"></div>
 
     <script>
-        async function doLogin() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
+        function togglePassword() {
+            const passInput = document.getElementById('pass');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        async function login() {
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
 
             try {
                 const res = await fetch('/api/login', {
@@ -93,63 +102,62 @@
                     body: JSON.stringify({ user, pass })
                 });
 
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    loadData();
+                if (res.ok) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-app').classList.remove('hidden');
+                    fetchData();
                 } else {
-                    Swal.fire('Gagal', 'Username atau Password salah!', 'error');
+                    Swal.fire('Login Gagal', 'Cek kembali Username dan Password Anda', 'error');
                 }
             } catch (e) {
-                Swal.fire('Error', 'Gagal menghubungi server', 'error');
+                Swal.fire('Error', 'Gagal menghubungi Server Worker', 'error');
             }
         }
 
-        async function loadData() {
+        async function fetchData() {
             const res = await fetch('/api/buku');
-            const books = await res.json();
+            const data = await res.json();
             const list = document.getElementById('book-list');
-            list.innerHTML = books.map(b => `
+            list.innerHTML = data.map(b => `
                 <tr class="hover:bg-slate-50">
-                    <td class="p-4 text-center"><input type="checkbox" value="${b.kode_buku}" class="book-cb w-5 h-5"></td>
-                    <td class="p-4 font-mono">${b.kode_buku}</td>
+                    <td class="p-4 text-center"><input type="checkbox" value="${b.kode_buku}" class="child-check w-5 h-5"></td>
+                    <td class="p-4 uppercase">${b.kode_buku}</td>
                 </tr>
             `).join('');
         }
 
-        function toggleSelect(el) {
-            document.querySelectorAll('.book-cb').forEach(cb => cb.checked = el.checked);
+        function toggleAll(el) {
+            document.querySelectorAll('.child-check').forEach(c => c.checked = el.checked);
         }
 
-        function preparePrint() {
-            const selected = Array.from(document.querySelectorAll('.book-cb:checked')).map(cb => cb.value);
-            if (selected.length === 0) return Swal.fire('Pilih Buku', 'Centang minimal satu buku!', 'warning');
+        function printSelected() {
+            const selected = Array.from(document.querySelectorAll('.child-check:checked')).map(c => c.value);
+            if (selected.length === 0) return Swal.fire('Pilih Buku', 'Belum ada buku yang dipilih', 'info');
 
             const area = document.getElementById('printArea');
             area.innerHTML = '';
-
+            
             selected.forEach((kode, i) => {
                 const box = document.createElement('div');
                 box.className = 'label-box';
-                
-                // Ganti "." menjadi baris baru sesuai permintaan
-                const formatted = kode.split('.').join('<br>');
+                // Konversi titik ke baris baru
+                const textFormatted = kode.split('.').join('<br>');
                 
                 box.innerHTML = `
-                    <div id="qr-${i}" style="width:120px"></div>
-                    <div class="kode-text">${formatted}</div>
+                    <div id="qr-${i}" style="width:130px; height:130px;"></div>
+                    <div class="kode-text uppercase">${textFormatted}</div>
                 `;
                 area.appendChild(box);
 
                 new QRCode(document.getElementById(`qr-${i}`), {
                     text: kode,
-                    width: 120,
-                    height: 120
+                    width: 130,
+                    height: 130,
+                    correctLevel : QRCode.CorrectLevel.H
                 });
             });
 
-            setTimeout(() => { window.print(); }, 1000);
+            setTimeout(() => { window.print(); }, 800);
         }
     </script>
 </body>
