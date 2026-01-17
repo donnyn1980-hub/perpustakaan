@@ -37,15 +37,19 @@
             }
             .qr-card-bottom { position: absolute; bottom: 4mm; left: 4mm; }
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 5px; font-size: 8.5pt; line-height: 1.2; }
+            
+            /* IDENTITAS SIMETRIS */
+            .info-table { width: 100%; font-size: 7.5pt; margin-bottom: 5px; border: none; }
+            .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
 
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL OPTIMIZED */
-        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 7pt; line-height: 1; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 1px 2px; text-align: center; height: 14px; }
-        table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
+        /* TABEL 33 BARIS */
+        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 6.5pt; line-height: 1; }
+        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 1px 2px; text-align: center; height: 12px; }
+        table.minimalist th { background-color: #f3f4f6; font-size: 6pt; }
         
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
     </style>
@@ -222,14 +226,17 @@
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
                     <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU BUKU</div>
-                    <pre style="font-family:inherit; font-size:7pt; line-height:1.1; margin-bottom:3px;">Judul: ${b.judul}\nNo Panggil: ${b.kode_buku}</pre>
+                    <table class="info-table">
+                        <tr><td width="30%">Judul</td><td width="5%">:</td><td>${b.judul}</td></tr>
+                        <tr><td>No Panggil</td><td>:</td><td>${b.kode_buku}</td></tr>
+                    </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:55px;height:55px;"></div>`;
+                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:50px;height:50px;"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 55, height: 55 });
+                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 50, height: 50 });
             });
             setTimeout(() => window.print(), 800);
         }
@@ -247,14 +254,18 @@
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
                     <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU PINJAMAN BUKU</div>
-                    <pre style="font-family:inherit; font-size:7pt; line-height:1.1; margin-bottom:3px;">Nama: ${a.nama_lengkap}\nNo: ${a.nomor_anggota}\nKelas: ${a.kelas}</pre>
-                    <table class="minimalist">
-                        <tr><th width="5%">No</th><th width="45%">Judul</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                    <table class="info-table">
+                        <tr><td width="30%">Nama</td><td width="5%">:</td><td>${a.nama_lengkap}</td></tr>
+                        <tr><td>No. Anggota</td><td>:</td><td>${a.nomor_anggota}</td></tr>
+                        <tr><td>Kelas</td><td>:</td><td>${a.kelas}</td></tr>
                     </table>
-                    <div id="qrs-${i}" class="qr-card-bottom" style="width:55px;height:55px;"></div>`;
+                    <table class="minimalist">
+                        <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
+                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                    </table>
+                    <div id="qrs-${i}" class="qr-card-bottom" style="width:50px;height:50px;"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 55, height: 55 });
+                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 50, height: 50 });
             });
             setTimeout(() => window.print(), 800);
         }
