@@ -2,153 +2,781 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>SIPERPUS - Admin & Sirkulasi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sirkulasi & Scan - SIPERPUS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @media print {
-            .no-print { display: none !important; }
-            #printArea { display: grid !important; grid-template-columns: 1fr 1fr; width: 210mm; padding: 10mm; gap: 5mm; }
-            .label-box { border: 1px solid black; height: 85mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
+        .hidden { display: none; }
+        #reader video { width: 100% !important; }
+        #reader { position: relative; }
+        .scanner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .scanner-line { position: absolute; width: 100%; height: 2px; background: #00ff00; animation: scan 2s infinite linear; box-shadow: 0 0 10px #00ff00; }
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
         }
-        #printArea { display: none; }
-        .kode-panggil { flex: 1; text-align: center; font-weight: bold; font-size: 22pt; line-height: 1.1; }
+        .camera-active { border: 3px solid #10B981; }
+        .camera-inactive { border: 3px solid #EF4444; }
+        .mobile-only { display: none; }
+        .desktop-only { display: block; }
+        
+        @media (max-width: 768px) {
+            .mobile-only { display: block; }
+            .desktop-only { display: none; }
+        }
+        
+        .book-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
-<body class="bg-slate-50">
-
-    <div id="login-screen" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-700 uppercase">Login Admin</h2>
-            <div class="space-y-4">
-                <input type="text" id="userInput" placeholder="User" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="password" id="pwdInput" placeholder="Password" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="auth()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 shadow-lg">MASUK</button>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <!-- Header Minimal -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold">📚</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-gray-800">Sirkulasi & Scan</h1>
+                    <p class="text-xs text-gray-500">Sistem Perpustakaan Digital</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="api-status" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Online</span>
+                <span id="current-time" class="text-sm text-gray-600"></span>
             </div>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden no-print min-h-screen">
-        <nav class="bg-blue-700 text-white p-4 shadow-md flex justify-between">
-            <span class="font-bold">SIPERPUS v3.0</span>
-            <div class="space-x-4">
-                <button onclick="showPage('label')" class="hover:underline">Cetak Label</button>
-                <button onclick="showPage('sirkulasi')" class="hover:underline">Sirkulasi Scan</button>
-                <button onclick="location.reload()" class="text-red-300">Logout</button>
-            </div>
-        </nav>
+    <!-- MAIN CONTENT - FOKUS PADA SIRKULASI -->
+    <main class="max-w-7xl mx-auto px-4 py-4">
+        <div class="grid lg:grid-cols-2 gap-6">
+            <!-- LEFT PANEL: Scanner & Input -->
+            <div class="space-y-6">
+                <!-- QR Scanner Section -->
+                <div class="bg-white rounded-xl shadow-sm border">
+                    <div class="p-4 border-b">
+                        <h3 class="font-bold text-lg flex items-center">
+                            <span class="mr-2">📱</span> Scanner QR Code
+                        </h3>
+                    </div>
+                    
+                    <!-- Tampilkan Scanner hanya di Mobile -->
+                    <div class="mobile-only p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span id="camera-status" class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Kamera Nonaktif</span>
+                            <button onclick="toggleCamera()" id="camera-toggle" 
+                                    class="bg-red-600 text-white px-3 py-1 rounded-lg text-sm">
+                                ⏺️ Aktifkan Kamera
+                            </button>
+                        </div>
+                        
+                        <div id="reader" class="rounded-xl overflow-hidden bg-black aspect-video relative camera-inactive">
+                            <div class="scanner-overlay">
+                                <div class="scanner-line"></div>
+                            </div>
+                            <div id="scanner-placeholder" class="absolute inset-0 flex items-center justify-center text-white">
+                                <div class="text-center">
+                                    <div class="text-4xl mb-2">📷</div>
+                                    <p class="text-sm">Aktifkan kamera untuk scanning</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mode Selector -->
+                        <div class="mt-4 flex gap-2">
+                            <button onclick="setMode('MEMBER')" id="mode-member" 
+                                    class="flex-1 py-3 rounded-lg font-bold bg-blue-100 text-blue-700 border border-blue-300 flex items-center justify-center gap-2">
+                                👤 Anggota
+                            </button>
+                            <button onclick="setMode('BOOK')" id="mode-book" 
+                                    class="flex-1 py-3 rounded-lg font-bold bg-gray-50 text-gray-400 border border-gray-300 flex items-center justify-center gap-2">
+                                📖 Buku
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tampilkan Input Manual di Desktop -->
+                    <div class="desktop-only p-6">
+                        <div class="text-center mb-6">
+                            <div class="text-4xl mb-2">⌨️</div>
+                            <p class="text-gray-600 mb-4">Gunakan input manual untuk desktop</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kode Anggota / Buku</label>
+                                <input type="text" id="manual-input" placeholder="Masukkan kode secara manual..." 
+                                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400">
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="manualScanMember()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium">
+                                    👤 Cari Anggota
+                                </button>
+                                <button onclick="manualScanBook()" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium">
+                                    📖 Cari Buku
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div id="page-label" class="p-6 max-w-5xl mx-auto">
-            <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm border">
-                <h1 class="text-xl font-bold">Manajemen Cetak Label A4</h1>
-                <button onclick="prosesCetak()" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold">CETAK TERPILIH</button>
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-xl shadow-sm border">
+                    <div class="p-4 border-b">
+                        <h3 class="font-bold text-lg flex items-center">
+                            <span class="mr-2">📊</span> Statistik Cepat
+                        </h3>
+                    </div>
+                    <div class="p-4 grid grid-cols-2 gap-3">
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <div class="text-lg font-bold text-blue-700" id="stats-buku-tersedia">0</div>
+                            <div class="text-xs text-blue-600">Buku Tersedia</div>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <div class="text-lg font-bold text-green-700" id="stats-buku-dipinjam">0</div>
+                            <div class="text-xs text-green-600">Buku Dipinjam</div>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded-lg">
+                            <div class="text-lg font-bold text-purple-700" id="stats-total-anggota">0</div>
+                            <div class="text-xs text-purple-600">Total Anggota</div>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded-lg">
+                            <div class="text-lg font-bold text-yellow-700" id="stats-transaksi-hari-ini">0</div>
+                            <div class="text-xs text-yellow-600">Transaksi Hari Ini</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <table class="w-full text-left font-mono text-sm">
-                    <thead class="bg-slate-50 border-b">
-                        <tr><th class="p-4 w-12"><input type="checkbox" onchange="toggle(this)"></th><th class="p-4">KODE BUKU</th></tr>
-                    </thead>
-                    <tbody id="list-buku" class="divide-y"></tbody>
-                </table>
+            
+            <!-- RIGHT PANEL: Transaction Details -->
+            <div class="bg-white rounded-xl shadow-sm border">
+                <div class="p-4 border-b">
+                    <h3 class="font-bold text-lg flex items-center">
+                        <span class="mr-2">🔄</span> Detail Transaksi
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <!-- Member Info -->
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-blue-400 uppercase mb-1">Anggota</p>
+                                <p id="disp-nama" class="font-bold text-gray-800 text-lg">Belum dipilih</p>
+                                <p id="disp-nomor" class="text-sm text-gray-600 mt-1">Nomor: -</p>
+                            </div>
+                            <button onclick="clearMember()" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
+                                Hapus
+                            </button>
+                        </div>
+                        <div id="disp-pinjaman" class="mt-2 text-xs font-medium text-blue-600"></div>
+                    </div>
+                    
+                    <!-- Temporary Books List -->
+                    <div id="temp-books-section" class="hidden">
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-xs font-bold text-purple-600">Daftar Buku Sementara</h4>
+                                <span id="book-count" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">0 buku</span>
+                            </div>
+                            <div id="temp-books-list" class="space-y-2 max-h-32 overflow-y-auto">
+                                <!-- Daftar buku akan ditambahkan di sini -->
+                            </div>
+                            <div class="mt-2 text-xs text-purple-600">
+                                <p>Maksimal 3 buku per transaksi</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Last Book Added -->
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-green-600 uppercase mb-1">Buku Terakhir</p>
+                                <p id="disp-judul" class="font-medium text-gray-800">Belum ada buku</p>
+                                <div class="mt-1">
+                                    <p id="disp-kode" class="text-xs text-gray-600">Kode: -</p>
+                                    <p id="disp-status" class="text-xs text-gray-600">Status: -</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="clearLastBook()" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
+                                    Hapus
+                                </button>
+                                <button onclick="clearAllBooks()" class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200">
+                                    Semua
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="pt-4 border-t">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="prosesTransaksiMulti('pinjam')" 
+                                    class="py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    id="btn-pinjam" disabled>
+                                <span>📥</span> PINJAM
+                            </button>
+                            <button onclick="prosesTransaksiMulti('kembali')" 
+                                    class="py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    id="btn-kembali" disabled>
+                                <span>📤</span> KEMBALI
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <p class="text-xs text-gray-500">Scan kartu anggota terlebih dahulu, lalu scan buku yang akan dipinjam/kembalikan</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </main>
 
-        <div id="page-sirkulasi" class="hidden p-6 max-w-4xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h2 class="font-bold mb-4">Scanner QR</h2>
-                    <div id="reader" class="rounded-lg overflow-hidden bg-black min-h-[300px]"></div>
-                    <button onclick="startScan()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg">Aktifkan Kamera</button>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h2 class="font-bold mb-4">Data Transaksi</h2>
-                    <div id="status-box" class="p-4 bg-amber-50 text-amber-800 rounded-lg text-sm mb-4">Scan Kartu Siswa untuk memulai</div>
-                    <div id="scanned-items" class="space-y-2 font-mono text-xs"></div>
-                    <button id="btn-proses" disabled onclick="submitTransaksi()" class="mt-6 w-full bg-gray-400 text-white py-3 rounded-xl font-bold">PROSES PINJAM</button>
-                </div>
-            </div>
-        </div>
+    <!-- Footer Minimal -->
+    <div class="mt-8 py-3 border-t text-center">
+        <p class="text-xs text-gray-500">SIPERPUS v1.0 • Sistem Sirkulasi Perpustakaan</p>
     </div>
-
-    <div id="printArea"></div>
 
     <script>
-        const API = "https://admin-perpus.donnyn1980.workers.dev";
-        let state = { user: null, role: 'admin', scannedBuku: [], currentSiswa: null };
+        // Configuration for standalone page
+        let config = {
+            apiUrl: "https://perpustakaan.donnyn1980.workers.dev",
+            currentMode: "MEMBER",
+            selectedMember: null,
+            html5QrCode: null,
+            isCameraActive: false,
+            allBooks: [],
+            isMobile: false,
+            tempBooks: [],
+            maxBooksPerTransaction: 3
+        };
 
-        async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            const res = await fetch(`${API}/api/login`, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user, pwd})
-            });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                loadBuku();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
-        }
-
-        function showPage(p) {
-            document.getElementById('page-label').classList.toggle('hidden', p !== 'label');
-            document.getElementById('page-sirkulasi').classList.toggle('hidden', p !== 'sirkulasi');
-        }
-
-        async function loadBuku() {
-            const res = await fetch(`${API}/api/buku`);
-            const data = await res.json();
-            document.getElementById('list-buku').innerHTML = data.map(b => `
-                <tr class="hover:bg-blue-50">
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb"></td>
-                    <td class="p-4 font-bold text-blue-800">${b.kode_buku}</td>
-                </tr>`).join('');
-        }
-
-        function toggle(s) { document.querySelectorAll('.cb').forEach(c => c.checked = s.checked); }
-
-        function prosesCetak() {
-            const terpilih = Array.from(document.querySelectorAll('.cb:checked')).map(c => c.value);
-            if (terpilih.length === 0) return Swal.fire('Pilih Data', 'Centang buku dahulu', 'info');
-            const area = document.getElementById('printArea'); area.innerHTML = '';
-            terpilih.forEach((k, i) => {
-                const box = document.createElement('div'); box.className = 'label-box';
-                box.innerHTML = `<div id="q-${i}" style="width:140px;height:140px;"></div><div class="kode-panggil">${k.split('.').join('<br>')}</div>`;
-                area.appendChild(box);
-                new QRCode(document.getElementById(`q-${i}`), { text: k, width: 140, height: 140 });
-            });
-            setTimeout(() => window.print(), 1000);
-        }
-
-        // Logika Scanner disederhanakan
-        function startScan() {
-            const scanner = new Html5Qrcode("reader");
-            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-                handleScanResult(txt);
-            });
-        }
-
-        async function handleScanResult(txt) {
-            if (!state.currentSiswa) {
-                // Anggap scan pertama adalah kartu siswa
-                const res = await fetch(`${API}/api/anggota/detail`, {
-                    method: 'POST', body: JSON.stringify({ nomor_anggota: txt })
-                });
-                const d = await res.json();
-                if(d.nama) { 
-                    state.currentSiswa = d;
-                    document.getElementById('status-box').innerHTML = `Peminjam: <b>${d.nama}</b><br>Scan Buku (Maks 3)`;
+        // Load configuration from localStorage
+        function loadConfig() {
+            const saved = localStorage.getItem('perpustakaan_config');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    config.apiUrl = parsed.apiUrl || config.apiUrl;
+                } catch (e) {
+                    console.error("Error loading config:", e);
                 }
-            } else if (state.scannedBuku.length < 3) {
-                state.scannedBuku.push(txt);
-                document.getElementById('scanned-items').innerHTML += `<div class="p-2 bg-blue-50 rounded border">Buku: ${txt}</div>`;
-                document.getElementById('btn-proses').disabled = false;
-                document.getElementById('btn-proses').classList.replace('bg-gray-400', 'bg-blue-600');
+            }
+            updateApiStatus();
+        }
+
+        function updateApiStatus() {
+            const statusEl = document.getElementById('api-status');
+            if (statusEl) {
+                statusEl.textContent = 'Online';
             }
         }
+
+        function showMessage(message, type = 'info') {
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            Swal.fire({
+                title: icon,
+                text: message,
+                icon: type,
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        // Device detection
+        function detectDevice() {
+            config.isMobile = window.innerWidth <= 768;
+            return config.isMobile;
+        }
+
+        // Camera Control Functions
+        function toggleCamera() {
+            if (!config.isMobile) {
+                showMessage("Scanner QR hanya tersedia di perangkat mobile", "info");
+                return;
+            }
+            
+            if (config.isCameraActive) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        }
+
+        async function startCamera() {
+            try {
+                if (!config.isMobile) return;
+                
+                if (!config.html5QrCode && window.Html5Qrcode) {
+                    config.html5QrCode = new Html5Qrcode("reader");
+                }
+                
+                if (!config.html5QrCode) return;
+                
+                const configScanner = {
+                    fps: 10,
+                    qrbox: { width: 200, height: 200 },
+                    aspectRatio: 1.0
+                };
+                
+                await config.html5QrCode.start(
+                    { facingMode: "environment" },
+                    configScanner,
+                    onScanSuccess,
+                    onScanError
+                );
+                
+                config.isCameraActive = true;
+                updateCameraUI(true);
+                
+            } catch (err) {
+                console.error("Failed to start camera:", err);
+                showMessage("Tidak dapat mengakses kamera", "error");
+            }
+        }
+
+        function stopCamera() {
+            if (config.html5QrCode && config.isCameraActive) {
+                config.html5QrCode.stop().then(() => {
+                    config.isCameraActive = false;
+                    updateCameraUI(false);
+                }).catch(err => {
+                    console.error("Failed to stop camera:", err);
+                });
+            }
+        }
+
+        function updateCameraUI(isActive) {
+            const reader = document.getElementById('reader');
+            const statusEl = document.getElementById('camera-status');
+            const toggleBtn = document.getElementById('camera-toggle');
+            const placeholder = document.getElementById('scanner-placeholder');
+            
+            if (isActive) {
+                reader.classList.remove('camera-inactive');
+                reader.classList.add('camera-active');
+                statusEl.textContent = 'Kamera Aktif';
+                statusEl.className = 'text-xs px-2 py-1 rounded-full bg-green-100 text-green-800';
+                toggleBtn.innerHTML = '⏹️ Matikan';
+                toggleBtn.className = 'bg-red-600 text-white px-3 py-1 rounded-lg text-sm';
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                reader.classList.remove('camera-active');
+                reader.classList.add('camera-inactive');
+                statusEl.textContent = 'Kamera Nonaktif';
+                statusEl.className = 'text-xs px-2 py-1 rounded-full bg-red-100 text-red-800';
+                toggleBtn.innerHTML = '⏺️ Aktifkan';
+                toggleBtn.className = 'bg-green-600 text-white px-3 py-1 rounded-lg text-sm';
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log("QR Code scanned:", decodedText);
+            handleScan(decodedText);
+            
+            // Visual feedback
+            const reader = document.getElementById('reader');
+            if (reader) {
+                reader.style.boxShadow = '0 0 15px #00ff00';
+                setTimeout(() => {
+                    reader.style.boxShadow = 'none';
+                }, 200);
+            }
+        }
+
+        function onScanError(error) {
+            // Ignore scanning errors
+        }
+
+        // Manual input functions
+        function manualScanMember() {
+            const code = document.getElementById('manual-input').value.trim();
+            if (code) {
+                setMode('MEMBER');
+                handleScan(code);
+                document.getElementById('manual-input').value = '';
+            } else {
+                showMessage("Masukkan kode anggota", "warning");
+            }
+        }
+
+        function manualScanBook() {
+            const code = document.getElementById('manual-input').value.trim();
+            if (code) {
+                setMode('BOOK');
+                handleScan(code);
+                document.getElementById('manual-input').value = '';
+            } else {
+                showMessage("Masukkan kode buku", "warning");
+            }
+        }
+
+        // Mode setting
+        function setMode(mode) {
+            config.currentMode = mode;
+            const memberBtn = document.getElementById('mode-member');
+            const bookBtn = document.getElementById('mode-book');
+            
+            if (memberBtn && bookBtn) {
+                if (mode === 'MEMBER') {
+                    memberBtn.className = 'flex-1 py-3 rounded-lg font-bold bg-blue-100 text-blue-700 border border-blue-300 flex items-center justify-center gap-2';
+                    bookBtn.className = 'flex-1 py-3 rounded-lg font-bold bg-gray-50 text-gray-400 border border-gray-300 flex items-center justify-center gap-2';
+                } else {
+                    memberBtn.className = 'flex-1 py-3 rounded-lg font-bold bg-gray-50 text-gray-400 border border-gray-300 flex items-center justify-center gap-2';
+                    bookBtn.className = 'flex-1 py-3 rounded-lg font-bold bg-blue-100 text-blue-700 border border-blue-300 flex items-center justify-center gap-2';
+                }
+            }
+        }
+
+        // Handle scan
+        async function handleScan(code) {
+            if (!code || code.trim() === '') return;
+            
+            const scannedCode = code.trim();
+            
+            if (config.currentMode === 'MEMBER') {
+                try {
+                    const response = await fetch(config.apiUrl + '/api/anggota/detail', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ nomor_anggota: scannedCode })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success && data.data) {
+                        config.selectedMember = data.data;
+                        config.tempBooks = [];
+                        document.getElementById('disp-nama').innerText = data.data.nama_lengkap;
+                        document.getElementById('disp-nomor').innerText = "Nomor: " + data.data.nomor_anggota;
+                        
+                        const pins = [data.data.pinjaman1, data.data.pinjaman2, data.data.pinjaman3].filter(x => x);
+                        document.getElementById('disp-pinjaman').innerHTML = pins.length > 0 
+                            ? '📚 Sedang dipinjam: ' + pins.join(", ")
+                            : "✅ Tidak ada pinjaman aktif";
+                        
+                        showMessage("Anggota ditemukan", "success");
+                        updateTempBooksList();
+                        updateTransactionButtons();
+                    } else {
+                        showMessage("Anggota tidak ditemukan", "warning");
+                    }
+                } catch (e) {
+                    console.error("Error loading member:", e);
+                    showMessage("Gagal memuat data", "error");
+                }
+            } else {
+                try {
+                    if (!config.selectedMember) {
+                        showMessage("Scan kartu anggota terlebih dahulu", "warning");
+                        return;
+                    }
+                    
+                    if (config.tempBooks.length >= config.maxBooksPerTransaction) {
+                        showMessage(`Maksimal ${config.maxBooksPerTransaction} buku`, "warning");
+                        return;
+                    }
+                    
+                    if (config.tempBooks.some(b => b.kode_buku === scannedCode)) {
+                        showMessage("Buku sudah ada di daftar", "warning");
+                        return;
+                    }
+                    
+                    let book = null;
+                    if (config.allBooks.length > 0) {
+                        book = config.allBooks.find(b => b.kode_buku === scannedCode);
+                    }
+                    
+                    if (!book) {
+                        const response = await fetch(config.apiUrl + '/api/buku');
+                        const data = await response.json();
+                        
+                        if (data.success && data.data) {
+                            config.allBooks = data.data;
+                            book = data.data.find(b => b.kode_buku === scannedCode);
+                        }
+                    }
+                    
+                    if (book) {
+                        config.tempBooks.push(book);
+                        updateBookDisplay(book);
+                        updateTempBooksList();
+                        showMessage(`Buku ditambahkan (${config.tempBooks.length}/${config.maxBooksPerTransaction})`, "success");
+                        updateTransactionButtons();
+                    } else {
+                        showMessage("Buku tidak ditemukan", "info");
+                    }
+                } catch (e) {
+                    console.error("Error loading books:", e);
+                    showMessage("Gagal memuat data", "error");
+                }
+            }
+        }
+
+        function updateBookDisplay(book) {
+            document.getElementById('disp-judul').innerText = book.judul;
+            document.getElementById('disp-kode').innerText = "Kode: " + book.kode_buku;
+            document.getElementById('disp-status').innerText = "Status: " + book.status;
+        }
+
+        function updateTempBooksList() {
+            const tempBooksSection = document.getElementById('temp-books-section');
+            const tempBooksList = document.getElementById('temp-books-list');
+            const bookCount = document.getElementById('book-count');
+            
+            if (config.tempBooks.length > 0) {
+                tempBooksSection.classList.remove('hidden');
+                
+                let html = '';
+                config.tempBooks.forEach((book, index) => {
+                    html += `
+                    <div class="book-item">
+                        <div class="flex-1">
+                            <div class="font-medium text-sm truncate">${book.judul}</div>
+                            <div class="text-xs text-gray-500 truncate">${book.kode_buku}</div>
+                        </div>
+                        <button onclick="removeBookFromList(${index})" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
+                            X
+                        </button>
+                    </div>
+                    `;
+                });
+                tempBooksList.innerHTML = html;
+                
+                bookCount.textContent = `${config.tempBooks.length} buku`;
+            } else {
+                tempBooksSection.classList.add('hidden');
+                tempBooksList.innerHTML = '';
+            }
+        }
+
+        function removeBookFromList(index) {
+            if (index >= 0 && index < config.tempBooks.length) {
+                config.tempBooks.splice(index, 1);
+                updateTempBooksList();
+                
+                if (config.tempBooks.length > 0) {
+                    const lastBook = config.tempBooks[config.tempBooks.length - 1];
+                    updateBookDisplay(lastBook);
+                } else {
+                    document.getElementById('disp-judul').innerText = "Belum ada buku";
+                    document.getElementById('disp-kode').innerText = "Kode: -";
+                    document.getElementById('disp-status').innerText = "Status: -";
+                }
+                
+                updateTransactionButtons();
+                showMessage("Buku dihapus", "info");
+            }
+        }
+
+        // Clear functions
+        function clearMember() {
+            config.selectedMember = null;
+            config.tempBooks = [];
+            document.getElementById('disp-nama').innerText = "Belum dipilih";
+            document.getElementById('disp-nomor').innerText = "Nomor: -";
+            document.getElementById('disp-pinjaman').innerHTML = "";
+            document.getElementById('disp-judul').innerText = "Belum ada buku";
+            document.getElementById('disp-kode').innerText = "Kode: -";
+            document.getElementById('disp-status').innerText = "Status: -";
+            updateTempBooksList();
+            updateTransactionButtons();
+            showMessage("Data anggota dihapus", "info");
+        }
+
+        function clearLastBook() {
+            if (config.tempBooks.length > 0) {
+                config.tempBooks.pop();
+                updateTempBooksList();
+                
+                if (config.tempBooks.length > 0) {
+                    const lastBook = config.tempBooks[config.tempBooks.length - 1];
+                    updateBookDisplay(lastBook);
+                } else {
+                    document.getElementById('disp-judul').innerText = "Belum ada buku";
+                    document.getElementById('disp-kode').innerText = "Kode: -";
+                    document.getElementById('disp-status').innerText = "Status: -";
+                }
+            }
+            updateTransactionButtons();
+        }
+
+        function clearAllBooks() {
+            config.tempBooks = [];
+            updateTempBooksList();
+            document.getElementById('disp-judul').innerText = "Belum ada buku";
+            document.getElementById('disp-kode').innerText = "Kode: -";
+            document.getElementById('disp-status').innerText = "Status: -";
+            updateTransactionButtons();
+            showMessage("Semua buku dihapus", "info");
+        }
+
+        function updateTransactionButtons() {
+            const pinjamBtn = document.getElementById('btn-pinjam');
+            const kembaliBtn = document.getElementById('btn-kembali');
+            
+            const canTransact = config.selectedMember && config.tempBooks.length > 0;
+            pinjamBtn.disabled = !canTransact;
+            kembaliBtn.disabled = !canTransact;
+        }
+
+        // Process transaction
+        async function prosesTransaksiMulti(tipe) {
+            if(!config.selectedMember || config.tempBooks.length === 0) {
+                showMessage("Lengkapi data terlebih dahulu", "warning");
+                return;
+            }
+            
+            const endpoint = config.apiUrl + (tipe === 'pinjam' ? "/api/pinjam" : "/api/kembali");
+            const confirmMsg = tipe === 'pinjam' 
+                ? `Pinjam ${config.tempBooks.length} buku untuk ${config.selectedMember.nama_lengkap}?`
+                : `Kembalikan ${config.tempBooks.length} buku dari ${config.selectedMember.nama_lengkap}?`;
+            
+            const confirmed = await Swal.fire({
+                title: 'Konfirmasi',
+                text: confirmMsg,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Batal'
+            });
+            
+            if (!confirmed.isConfirmed) return;
+            
+            try {
+                let totalDenda = 0;
+                let successCount = 0;
+                let errorMessages = [];
+                
+                for (const book of config.tempBooks) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ 
+                                nomor_anggota: config.selectedMember.nomor_anggota, 
+                                kode_buku: book.kode_buku 
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            successCount++;
+                            if (result.denda > 0) {
+                                totalDenda += result.denda;
+                            }
+                        } else {
+                            errorMessages.push(`${book.judul}: ${result.msg || "Gagal"}`);
+                        }
+                    } catch (e) {
+                        errorMessages.push(`${book.judul}: Error - ${e.message}`);
+                    }
+                }
+                
+                let msg = tipe === 'pinjam' 
+                    ? `Berhasil meminjam ${successCount} dari ${config.tempBooks.length} buku!` 
+                    : `Berhasil mengembalikan ${successCount} dari ${config.tempBooks.length} buku!`;
+                
+                if (totalDenda > 0) {
+                    msg += ` Total denda: Rp ${totalDenda}`;
+                }
+                
+                if (errorMessages.length > 0) {
+                    showMessage(msg + `\nGagal: ${errorMessages.length} buku`, "warning");
+                } else {
+                    showMessage(msg, "success");
+                }
+                
+                config.tempBooks = [];
+                updateTempBooksList();
+                document.getElementById('disp-judul').innerText = "Belum ada buku";
+                document.getElementById('disp-kode').innerText = "Kode: -";
+                document.getElementById('disp-status').innerText = "Status: -";
+                
+                loadStats();
+                
+            } catch (e) {
+                showMessage("Gagal menghubungi server", "error");
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const bukuRes = await fetch(config.apiUrl + '/api/buku');
+                const bukuData = await bukuRes.json();
+                
+                if (bukuData.success && bukuData.data) {
+                    const tersedia = bukuData.data.filter(b => b.status.includes('Tersedia')).length;
+                    const dipinjam = bukuData.data.filter(b => b.status === 'Dipinjam').length;
+                    
+                    document.getElementById('stats-buku-tersedia').textContent = tersedia;
+                    document.getElementById('stats-buku-dipinjam').textContent = dipinjam;
+                }
+                
+                const anggotaRes = await fetch(config.apiUrl + '/api/anggota');
+                const anggotaData = await anggotaRes.json();
+                if (anggotaData.success && anggotaData.data) {
+                    document.getElementById('stats-total-anggota').textContent = anggotaData.data.length;
+                }
+                
+                const transaksiRes = await fetch(config.apiUrl + '/api/peminjaman');
+                const transaksiData = await transaksiRes.json();
+                if (transaksiData.success && transaksiData.data) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const transaksiHariIni = transaksiData.data.filter(t => t.tanggal_pinjam === today).length;
+                    document.getElementById('stats-transaksi-hari-ini').textContent = transaksiHariIni;
+                }
+                
+            } catch (e) {
+                console.error("Error loading stats:", e);
+            }
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            detectDevice();
+            setInterval(updateTime, 1000);
+            updateTime();
+            loadStats();
+            
+            window.addEventListener('resize', detectDevice);
+            
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && config.isCameraActive) {
+                    stopCamera();
+                }
+            });
+        });
     </script>
 </body>
 </html>
