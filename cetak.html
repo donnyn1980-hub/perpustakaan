@@ -35,7 +35,17 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; background: white; padding: 2px; }
+            /* QR Container Style */
+            .qr-card-bottom { 
+                position: absolute; 
+                bottom: 3mm; 
+                left: 4mm; 
+                width: 50px; 
+                height: 50px; 
+                background: white;
+            }
+            .qr-card-bottom img { width: 100%; height: 100%; }
+
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
             /* IDENTITAS SIMETRIS */
@@ -46,13 +56,13 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL OPTIMIZED HEIGHT */
+        /* TABEL OPTIMIZED */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
             padding: 0px 2px; 
             text-align: center; 
-            height: 22px; /* Tinggi baris ditingkatkan karena jumlah baris berkurang */
+            height: 16.5px; 
             line-height: 1; 
         }
         table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
@@ -63,7 +73,7 @@
 <body class="bg-slate-50">
 
     <div id="login-section" class="flex items-center justify-center min-h-screen no-print">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-sm border">
             <h2 class="text-2xl font-bold mb-6 text-center text-blue-700 uppercase">Admin Login</h2>
             <div class="space-y-4">
                 <input type="text" id="userInput" placeholder="User" class="w-full p-4 border rounded-xl outline-none">
@@ -215,10 +225,10 @@
                 box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
                 const qrelem = document.getElementById(`ql-${i}`);
-                qrelem.replaceChildren(); 
-                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.H });
+                qrelem.replaceChildren();
+                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
             });
-            setTimeout(() => window.print(), 1500);
+            setTimeout(() => window.print(), 1000);
         }
 
         function cetakKartuBuku() {
@@ -240,15 +250,15 @@
                     </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:90px;height:90px;"></div>`;
+                    <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
                 const qrelem = document.getElementById(`qrbk-${i}`);
                 qrelem.replaceChildren();
-                new QRCode(qrelem, { text: b.kode_buku, width: 90, height: 90, correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(qrelem, { text: b.kode_buku, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.H });
             });
-            setTimeout(() => window.print(), 1500);
+            setTimeout(() => window.print(), 1200);
         }
 
         function cetakKartuPinjam() {
@@ -271,15 +281,23 @@
                     </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrs-${i}" class="qr-card-bottom" style="width:90px;height:90px;"></div>`;
+                    <div id="qrs-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
+                
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.replaceChildren();
-                new QRCode(qrelem, { text: a.nomor_anggota, width: 90, height: 90, correctLevel: QRCode.CorrectLevel.H });
+                qrelem.replaceChildren(); // Bersihkan elemen lama
+                
+                // Generate dengan resolusi tinggi (150px) lalu dikecilkan via CSS (50px) agar tajam
+                new QRCode(qrelem, { 
+                    text: a.nomor_anggota, 
+                    width: 150, 
+                    height: 150, 
+                    correctLevel: QRCode.CorrectLevel.H 
+                });
             });
-            setTimeout(() => window.print(), 1500);
+            setTimeout(() => window.print(), 1200);
         }
     </script>
 </body>
