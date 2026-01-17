@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Perpus - Cetak Label</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 210mm; }
+            .no-print { display: none; }
+            .page-break { page-break-after: always; }
+        }
+        .label-box {
+            width: 95mm; /* Mendekati 1/2 lebar A4 */
+            height: 90mm; /* Mendekati 1/3 tinggi A4 untuk total 6 label */
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .kode-text {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <div id="loginSection" class="flex items-center justify-center h-screen">
+        <div class="bg-white p-8 rounded shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center">Login Admin</h2>
+            <input type="text" id="user" placeholder="Username" class="w-full p-2 mb-4 border rounded">
+            <input type="password" id="pass" placeholder="Password" class="w-full p-2 mb-6 border rounded">
+            <button onclick="login()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Masuk</button>
+        </div>
+    </div>
+
+    <div id="mainSection" class="hidden p-8">
+        <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow-md">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Daftar Buku (Cetak Label)</h1>
+                <button onclick="printLabels()" class="bg-green-600 text-white px-4 py-2 rounded">Cetak Terpilih (PDF)</button>
+            </div>
+            
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border p-2 w-10"><input type="checkbox" id="selectAll"></th>
+                        <th class="border p-2 text-left">Kode Buku</th>
+                    </tr>
+                </thead>
+                <tbody id="bukuTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="printArea" class="hidden grid grid-cols-2 gap-2 p-4 bg-white"></div>
+
+    <script>
+        let dataBuku = [];
+
+        async function login() {
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ user, pass })
+            });
+
+            if (res.ok) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('mainSection').classList.remove('hidden');
+                loadBuku();
+            } else {
+                alert('Login Gagal!');
+            }
+        }
+
+        async function loadBuku() {
+            const res = await fetch('/api/buku');
+            dataBuku = await res.json();
+            const table = document.getElementById('bukuTable');
+            table.innerHTML = dataBuku.map(b => `
+                <tr>
+                    <td class="border p-2 text-center"><input type="checkbox" value="${b.kode_buku}" class="buku-check"></td>
+                    <td class="border p-2">${b.kode_buku}</td>
+                </tr>
+            `).join('');
+        }
+
+        function printLabels() {
+            const selected = Array.from(document.querySelectorAll('.buku-check:checked')).map(cb => cb.value);
+            if (selected.length === 0) return alert('Pilih buku dulu!');
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = '';
+            printArea.classList.remove('hidden');
+
+            selected.forEach((kode, index) => {
+                const label = document.createElement('div');
+                label.className = 'label-box';
+                
+                // Ganti tanda "." dengan baris baru untuk teks
+                const formattedText = kode.replace(/\./g, '<br>');
+
+                label.innerHTML = `
+                    <div id="qr-${index}"></div>
+                    <div class="kode-text">${formattedText}</div>
+                `;
+                
+                printArea.appendChild(label);
+
+                // Generate QR Code
+                new QRCode(document.getElementById(`qr-${index}`), {
+                    text: kode,
+                    width: 150,
+                    height: 150
+                });
+
+                // Sisipkan page break setiap 6 label
+                if ((index + 1) % 6 === 0 && index !== selected.length - 1) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'page-break col-span-2';
+                    printArea.appendChild(spacer);
+                }
+            });
+
+            setTimeout(() => {
+                window.print();
+                printArea.classList.add('hidden');
+            }, 500);
+        }
+    </script>
+</body>
+</html>
