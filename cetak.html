@@ -11,46 +11,43 @@
             .no-print { display: none !important; }
             body { background: white; margin: 0; padding: 0; }
             
-            /* Sembunyikan dashboard saat cetak */
-            #main-dashboard, #login-section { display: none !important; }
+            /* RESET AREA CETAK */
+            #printAreaLabel:empty, #printAreaKartu:empty { display: none !important; }
 
-            /* LABEL: 9 Per Lembar (3x3) - Kertas Portrait */
-            .print-label-mode { 
+            /* 1. LABEL BUKU: 12 Grid (4 Kanan, 3 Bawah) - Portrait */
+            .label-grid-12 { 
                 display: grid !important; 
-                grid-template-columns: repeat(3, 1fr); 
+                grid-template-columns: repeat(4, 1fr); 
                 grid-template-rows: repeat(3, 1fr);
                 width: 210mm; height: 297mm; padding: 5mm; gap: 2mm;
             }
-            .label-box { 
-                border: 1px solid black; display: flex; flex-direction: row; /* Horizontal */
-                align-items: center; justify-content: center; padding: 10px; height: 90mm;
-                page-break-inside: avoid; gap: 10px;
+            .label-item { 
+                border: 1px solid black; display: flex; flex-direction: row; 
+                align-items: center; justify-content: center; padding: 5px; height: 95mm;
+                page-break-inside: avoid; gap: 8px;
             }
-            .label-text-right { 
-                flex: 1; text-align: center; font-weight: bold; font-size: 18pt; 
-                line-height: 1.2; text-transform: uppercase; 
-            }
+            .label-text { flex: 1; text-align: center; font-weight: bold; font-size: 14pt; line-height: 1.1; }
 
-            /* KARTU: 3 Berjajar - Kertas Landscape */
+            /* 2. KARTU BUKU & PINJAMAN: 3 Grid (Berjajar Horizontal) - Landscape */
             @page { size: A4 landscape; margin: 0; }
-            .print-card-mode { 
+            .card-flex-3 { 
                 display: flex !important; flex-direction: row; 
                 gap: 5mm; padding: 5mm; justify-content: center; width: 100%;
             }
-            .card-item { 
+            .card-box { 
                 width: 90mm; height: 195mm; border: 1px solid black; 
                 padding: 8mm; position: relative; font-family: 'Courier New', Courier, monospace;
                 page-break-inside: avoid; background: white;
             }
             /* QR POSISI BAWAH KIRI */
-            .qr-bottom-left { position: absolute; bottom: 8mm; left: 8mm; }
+            .qr-absolute-bottom-left { position: absolute; bottom: 8mm; left: 8mm; }
         }
 
-        /* Tampilan Layar */
+        /* LAYAR MONITOR */
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 8pt; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 3px; text-align: center; }
+        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 2px; text-align: center; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -68,18 +65,18 @@
 
     <div id="main-dashboard" class="hidden no-print min-h-screen">
         <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="font-bold text-blue-800 uppercase">Perpus SMAN 2 Cikarang Barat</h1>
+            <h1 class="font-bold text-blue-800">PERPUS SMAN 2 CIKARANG BARAT</h1>
             <div class="flex space-x-6">
-                <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2 py-1">Mode Cetak Buku</button>
-                <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2 py-1">Mode Cetak Anggota</button>
+                <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2 py-1">Cetak Buku</button>
+                <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2 py-1">Cetak Anggota</button>
             </div>
         </nav>
 
         <div id="view-buku" class="p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold">Data Buku</h2>
+                <h2 class="text-lg font-bold text-slate-700">Data Buku</h2>
                 <div class="space-x-2">
-                    <button onclick="cetakLabel()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 9 LABEL</button>
+                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 12 LABEL</button>
                     <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU BUKU</button>
                 </div>
             </div>
@@ -87,7 +84,7 @@
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
                         <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-buku', this)"></th>
+                            <th class="p-4 w-12 text-center border-r"><input type="checkbox" onchange="toggle('.cb-buku', this)"></th>
                             <th class="p-4">KODE BUKU</th>
                             <th class="p-4">JUDUL BUKU</th>
                         </tr>
@@ -99,14 +96,14 @@
 
         <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold">Data Anggota</h2>
+                <h2 class="text-lg font-bold text-slate-700">Data Anggota</h2>
                 <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU PINJAM</button>
             </div>
             <div class="bg-white rounded-xl border overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
                         <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th>
+                            <th class="p-4 w-12 text-center border-r"><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th>
                             <th class="p-4">NOMOR ANGGOTA</th>
                             <th class="p-4">NAMA LENGKAP</th>
                         </tr>
@@ -167,24 +164,26 @@
 
         function toggle(cls, s) { document.querySelectorAll(cls).forEach(c => c.checked = s.checked); }
 
-        function prepareCetak(mode) {
+        function clearPrint() {
             const l = document.getElementById('printAreaLabel');
             const k = document.getElementById('printAreaKartu');
-            l.innerHTML = ''; k.innerHTML = ''; 
+            l.innerHTML = ''; k.innerHTML = '';
             l.style.display = 'none'; k.style.display = 'none';
-            if(mode === 'label') { l.style.display = 'grid'; l.className = 'print-label-mode'; return l; }
-            else { k.style.display = 'flex'; k.className = 'print-card-mode'; return k; }
         }
 
-        function cetakLabel() {
+        function cetakLabel12() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
             if(items.length === 0) return;
-            const area = prepareCetak('label');
+            clearPrint();
+            const area = document.getElementById('printAreaLabel');
+            area.style.display = 'grid'; area.className = 'label-grid-12';
+
             items.forEach((kode, i) => {
-                const box = document.createElement('div'); box.className = 'label-box';
-                box.innerHTML = `<div id="ql-${i}" style="width:120px;height:120px;"></div><div class="label-text-right">${kode.split('.').join('<br>')}</div>`;
+                const box = document.createElement('div'); box.className = 'label-item';
+                // QR di kiri, Teks di kanan
+                box.innerHTML = `<div id="ql-${i}" style="width:90px;height:90px;"></div><div class="label-text">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
-                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 120, height: 120 });
+                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 90, height: 90 });
             });
             setTimeout(() => window.print(), 800);
         }
@@ -192,10 +191,13 @@
         function cetakKartuBuku() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
             if(items.length === 0) return;
-            const area = prepareCetak('kartu');
+            clearPrint();
+            const area = document.getElementById('printAreaKartu');
+            area.style.display = 'flex'; area.className = 'card-flex-3';
+
             items.forEach((kode, i) => {
                 const b = bukuData.find(x => x.kode_buku === kode);
-                const card = document.createElement('div'); card.className = 'card-item';
+                const card = document.createElement('div'); card.className = 'card-box';
                 card.innerHTML = `
                     <div style="text-align:center; font-weight:bold; border-bottom:2px double black; margin-bottom:10px; font-size:10pt;">KARTU BUKU</div>
                     <pre style="font-family:inherit; font-size:8pt; line-height:1.2; margin-bottom:5px;">Judul: ${b.judul}\nPengarang: ${b.pengarang}\nNo Panggil: ${b.kode_buku}</pre>
@@ -203,7 +205,7 @@
                         <tr><th>No</th><th>Peminjam</th><th>Tgl Pinjam</th><th>Tgl Kembali</th></tr>
                         ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-bottom-left" style="width:65px;height:65px;"></div>`;
+                    <div id="qrbk-${i}" class="qr-absolute-bottom-left" style="width:65px;height:65px;"></div>`;
                 area.appendChild(card);
                 new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 65, height: 65 });
             });
@@ -213,10 +215,13 @@
         function cetakKartuPinjam() {
             const items = Array.from(document.querySelectorAll('.cb-anggota:checked')).map(c => c.value);
             if(items.length === 0) return;
-            const area = prepareCetak('kartu');
+            clearPrint();
+            const area = document.getElementById('printAreaKartu');
+            area.style.display = 'flex'; area.className = 'card-flex-3';
+
             items.forEach((nomor, i) => {
                 const a = anggotaData.find(x => x.nomor_anggota === nomor);
-                const card = document.createElement('div'); card.className = 'card-item';
+                const card = document.createElement('div'); card.className = 'card-box';
                 card.innerHTML = `
                     <div style="text-align:center; font-weight:bold; border-bottom:2px double black; margin-bottom:10px; font-size:10pt;">KARTU PINJAMAN BUKU</div>
                     <pre style="font-family:inherit; font-size:8pt; line-height:1.2; margin-bottom:5px;">Nama: ${a.nama_lengkap}\nNo: ${a.nomor_anggota}\nKelas: ${a.kelas}</pre>
@@ -224,7 +229,7 @@
                         <tr><th>No</th><th>Judul</th><th>Tgl Pinjam</th><th>Paraf</th><th>Tgl Kembali</th></tr>
                         ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrs-${i}" class="qr-bottom-left" style="width:65px;height:65px;"></div>`;
+                    <div id="qrs-${i}" class="qr-absolute-bottom-left" style="width:65px;height:65px;"></div>`;
                 area.appendChild(card);
                 new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 65, height: 65 });
             });
