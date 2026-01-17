@@ -492,13 +492,13 @@
                                         <input type="number" id="in-tahun" placeholder="2024" min="1900" max="2100" 
                                                class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400" 
                                                value="2024">
-                                               <p class="mt-1 text-[10px] text-gray-400">Tahun terbit buku (4 digit)</p>
+                                        <p class="mt-1 text-[10px] text-gray-400">Tahun terbit buku (4 digit)</p>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">ISBN</label>
-                                        <input id="in-isbn" placeholder="978-xxx-xxx" 
-                                               class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">ISBN</label>
+                                    <input id="in-isbn" placeholder="978-xxx-xxx" 
+                                           class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Jumlah Stok Buku Fisik *</label>
@@ -1486,6 +1486,7 @@
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Kode Buku</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Judul & Pengarang</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Status</th>
+                                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Tahun</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Lokasi</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Kode Pengarang</th>
                                             </tr>
@@ -1515,6 +1516,7 @@
                                         ${b.status}
                                     </span>
                                 </td>
+                                <td class="p-4 text-sm text-gray-600">${b.tahun || '-'}</td>
                                 <td class="p-4 text-sm text-gray-600">${b.rak_lokasi || '-'}</td>
                                 <td class="p-4 font-mono text-xs text-gray-500">${b.kode_pengarang || '-'}</td>
                             </tr>
@@ -2164,15 +2166,22 @@
             const pengarang = document.getElementById('in-pengarang').value.trim();
             const klasifikasi = document.getElementById('in-klasifikasi').value.trim();
             const stok = document.getElementById('in-stok').value;
+            const tahun = document.getElementById('in-tahun').value.trim();
             
-            if (!judul || !pengarang || !klasifikasi || !stok || parseInt(stok) < 1) {
-                showMessage("Judul, Pengarang, Klasifikasi, dan Stok wajib diisi!", "warning");
+            if (!judul || !pengarang || !klasifikasi || !stok || parseInt(stok) < 1 || !tahun) {
+                showMessage("Judul, Pengarang, Klasifikasi, Tahun, dan Stok wajib diisi!", "warning");
                 return;
             }
             
             // Validasi klasifikasi harus angka
             if (isNaN(klasifikasi)) {
                 showMessage("Klasifikasi harus berupa angka DDC!", "warning");
+                return;
+            }
+            
+            // Validasi tahun harus angka 4 digit
+            if (isNaN(tahun) || tahun.length !== 4 || parseInt(tahun) < 1900 || parseInt(tahun) > 2100) {
+                showMessage("Tahun terbit harus berupa angka 4 digit (1900-2100)!", "warning");
                 return;
             }
             
@@ -2186,6 +2195,7 @@
                 rak_lokasi: document.getElementById('in-lokasi').value.trim(),
                 penerbit: document.getElementById('in-penerbit').value.trim(),
                 isbn: document.getElementById('in-isbn').value.trim(),
+                tahun: tahun,
                 stok: stok
             };
             
@@ -2220,9 +2230,10 @@
                     
                     // Reset form
                     document.querySelectorAll('#tab-inventaris input').forEach(i => {
-                        if (i.id !== 'in-stok') i.value = '';
+                        if (i.id !== 'in-stok' && i.id !== 'in-tahun') i.value = '';
                     });
                     document.getElementById('in-stok').value = 1;
+                    document.getElementById('in-tahun').value = new Date().getFullYear();
                     
                     // Reload katalog
                     loadKatalog();
@@ -2445,6 +2456,9 @@
             // Load initial stats
             loadStats();
             
+            // Set tahun default
+            document.getElementById('in-tahun').value = new Date().getFullYear();
+            
             // Listen for window resize to update device detection
             window.addEventListener('resize', function() {
                 detectDevice();
@@ -2458,6 +2472,9 @@
             
             // Cek auto login
             checkAutoLogin();
+            
+            // Set tahun default
+            document.getElementById('in-tahun').value = new Date().getFullYear();
             
             // Tambahkan CSS untuk animasi shake
             const style = document.createElement('style');
