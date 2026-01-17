@@ -35,21 +35,22 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            .qr-card-bottom { position: absolute; bottom: 4mm; left: 4mm; }
-            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 5px; font-size: 8.5pt; line-height: 1.2; }
+            /* QR POSISI PALING BAWAH */
+            .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; }
+            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
             /* IDENTITAS SIMETRIS */
-            .info-table { width: 100%; font-size: 7.5pt; margin-bottom: 5px; border: none; }
+            .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
             .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
 
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 33 BARIS */
-        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 6.5pt; line-height: 1; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 1px 2px; text-align: center; height: 12px; }
-        table.minimalist th { background-color: #f3f4f6; font-size: 6pt; }
+        /* TABEL 33 BARIS OPTIMIZED */
+        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
+        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 0px 2px; text-align: center; height: 13.5px; line-height: 1; }
+        table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
         
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
     </style>
@@ -78,13 +79,13 @@
 
         <div id="view-buku" class="p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-700">Data Buku</h2>
+                <h2 class="text-lg font-bold">Data Buku</h2>
                 <div class="space-x-2">
                     <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 12 LABEL</button>
                     <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU BUKU</button>
                 </div>
             </div>
-            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input shadow-sm">
+            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input">
             <div class="bg-white rounded-xl border overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
@@ -101,10 +102,10 @@
 
         <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-700">Data Anggota</h2>
+                <h2 class="text-lg font-bold">Data Anggota</h2>
                 <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU PINJAM</button>
             </div>
-            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input shadow-sm">
+            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input">
             <div class="bg-white rounded-xl border overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
@@ -149,7 +150,7 @@
             document.getElementById('list-buku').innerHTML = data.map(b => `
                 <tr>
                     <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5"></td>
-                    <td class="p-4 font-bold text-blue-800 uppercase">${b.kode_buku}</td>
+                    <td class="p-4 font-bold uppercase text-blue-700">${b.kode_buku}</td>
                     <td class="p-4">${b.judul}</td>
                 </tr>`).join('');
         }
@@ -225,7 +226,7 @@
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU BUKU</div>
+                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU BUKU</div>
                     <table class="info-table">
                         <tr><td width="30%">Judul</td><td width="5%">:</td><td>${b.judul}</td></tr>
                         <tr><td>No Panggil</td><td>:</td><td>${b.kode_buku}</td></tr>
@@ -253,7 +254,7 @@
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU PINJAMAN BUKU</div>
+                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU PINJAMAN BUKU</div>
                     <table class="info-table">
                         <tr><td width="30%">Nama</td><td width="5%">:</td><td>${a.nama_lengkap}</td></tr>
                         <tr><td>No. Anggota</td><td>:</td><td>${a.nomor_anggota}</td></tr>
