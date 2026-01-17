@@ -32,17 +32,21 @@
             }
             .card-tight { 
                 width: 88mm; height: 195mm; border: 1px solid black; 
-                padding: 6mm; position: relative; font-family: 'Courier New', monospace;
-                page-break-inside: avoid;
+                padding: 4mm; position: relative; font-family: 'Courier New', monospace;
+                page-break-inside: avoid; overflow: hidden;
             }
-            .qr-card-bottom { position: absolute; bottom: 6mm; left: 6mm; }
-            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 8px; font-size: 9pt; }
+            .qr-card-bottom { position: absolute; bottom: 4mm; left: 4mm; }
+            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 5px; font-size: 8.5pt; line-height: 1.2; }
         }
 
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
-        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 8pt; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 2px; }
+        
+        /* TABEL OPTIMIZED */
+        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 7pt; line-height: 1; }
+        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 1px 2px; text-align: center; height: 14px; }
+        table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
+        
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
     </style>
 </head>
@@ -217,15 +221,15 @@
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:10pt; margin-bottom:5px;">KARTU BUKU</div>
-                    <pre style="font-family:inherit; font-size:7.5pt; line-height:1.2; margin-bottom:5px;">Judul: ${b.judul}\nNo Panggil: ${b.kode_buku}</pre>
+                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU BUKU</div>
+                    <pre style="font-family:inherit; font-size:7pt; line-height:1.1; margin-bottom:3px;">Judul: ${b.judul}\nNo Panggil: ${b.kode_buku}</pre>
                     <table class="minimalist">
-                        <tr style="text-align:center;"><th>No</th><th>Peminjam</th><th>Tgl Pinjam</th><th>Tgl Kembali</th></tr>
-                        ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
+                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:65px;height:65px;"></div>`;
+                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:55px;height:55px;"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 65, height: 65 });
+                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 55, height: 55 });
             });
             setTimeout(() => window.print(), 800);
         }
@@ -242,15 +246,15 @@
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:10pt; margin-bottom:5px;">KARTU PINJAMAN BUKU</div>
-                    <pre style="font-family:inherit; font-size:7.5pt; line-height:1.2; margin-bottom:5px;">Nama: ${a.nama_lengkap}\nNo: ${a.nomor_anggota}\nKelas: ${a.kelas}</pre>
+                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:3px;">KARTU PINJAMAN BUKU</div>
+                    <pre style="font-family:inherit; font-size:7pt; line-height:1.1; margin-bottom:3px;">Nama: ${a.nama_lengkap}\nNo: ${a.nomor_anggota}\nKelas: ${a.kelas}</pre>
                     <table class="minimalist">
-                        <tr style="text-align:center;"><th>No</th><th>Judul</th><th>Tgl Pinjam</th><th>Paraf</th><th>Tgl Kembali</th></tr>
-                        ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>').join('')}
+                        <tr><th width="5%">No</th><th width="45%">Judul</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
+                        ${Array(23).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrs-${i}" class="qr-card-bottom" style="width:65px;height:65px;"></div>`;
+                    <div id="qrs-${i}" class="qr-card-bottom" style="width:55px;height:55px;"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 65, height: 65 });
+                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 55, height: 55 });
             });
             setTimeout(() => window.print(), 800);
         }
