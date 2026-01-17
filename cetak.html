@@ -35,16 +35,21 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            /* QR Container Style */
+            
+            /* QR Container Optimized */
             .qr-card-bottom { 
                 position: absolute; 
                 bottom: 3mm; 
                 left: 4mm; 
                 width: 50px; 
-                height: 50px; 
+                height: 50px;
                 background: white;
             }
-            .qr-card-bottom img { width: 100%; height: 100%; }
+            /* Memastikan hasil render canvas/img tajam dan pas di 50px */
+            .qr-card-bottom img, .qr-card-bottom canvas { 
+                width: 50px !important; 
+                height: 50px !important; 
+            }
 
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
@@ -56,7 +61,7 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL OPTIMIZED */
+        /* TABEL 33 BARIS */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
@@ -73,7 +78,7 @@
 <body class="bg-slate-50">
 
     <div id="login-section" class="flex items-center justify-center min-h-screen no-print">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-sm border">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border">
             <h2 class="text-2xl font-bold mb-6 text-center text-blue-700 uppercase">Admin Login</h2>
             <div class="space-y-4">
                 <input type="text" id="userInput" placeholder="User" class="w-full p-4 border rounded-xl outline-none">
@@ -225,7 +230,7 @@
                 box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
                 const qrelem = document.getElementById(`ql-${i}`);
-                qrelem.replaceChildren();
+                qrelem.innerHTML = '';
                 new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
             });
             setTimeout(() => window.print(), 1000);
@@ -255,8 +260,8 @@
                     <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
                 const qrelem = document.getElementById(`qrbk-${i}`);
-                qrelem.replaceChildren();
-                new QRCode(qrelem, { text: b.kode_buku, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.H });
+                qrelem.innerHTML = '';
+                new QRCode(qrelem, { text: b.kode_buku, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
             });
             setTimeout(() => window.print(), 1200);
         }
@@ -287,13 +292,13 @@
                 area.appendChild(card);
                 
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.replaceChildren(); // Bersihkan elemen lama
+                qrelem.innerHTML = ''; // Pastikan bersih
                 
-                // Generate dengan resolusi tinggi (150px) lalu dikecilkan via CSS (50px) agar tajam
+                // Render High-DPI (128px) lalu dikecilkan CSS ke 50px agar tajam
                 new QRCode(qrelem, { 
                     text: a.nomor_anggota, 
-                    width: 150, 
-                    height: 150, 
+                    width: 128, 
+                    height: 128, 
                     correctLevel: QRCode.CorrectLevel.H 
                 });
             });
