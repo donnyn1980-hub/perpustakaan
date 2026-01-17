@@ -10,11 +10,9 @@
         @media print {
             .no-print { display: none !important; }
             body { background: white; margin: 0; padding: 0; }
-            
-            /* SETTING KERTAS LANDSCAPE UNTUK SEMUA MODE CETAK */
             @page { size: A4 landscape; margin: 5mm; }
 
-            /* 1. LABEL: 12 GRID (4 KOLOM x 3 BARIS) - TIGHT LAYOUT */
+            /* LABEL 12 GRID (4x3) */
             .print-label-grid { 
                 display: grid !important; 
                 grid-template-columns: repeat(4, 1fr); 
@@ -23,34 +21,29 @@
             }
             .label-tight { 
                 border: 1px solid black; display: flex; flex-direction: row; 
-                align-items: center; justify-content: flex-start; padding: 2mm; 
-                height: 64mm; page-break-inside: avoid; overflow: hidden;
-            }
-            .qr-label-box { width: 110px; height: 110px; flex-shrink: 0; margin-right: 5mm; }
-            .text-label-box { 
-                flex: 1; text-align: center; font-weight: bold; 
-                font-size: 18pt; line-height: 1.1; text-transform: uppercase;
+                align-items: center; padding: 2mm; height: 64mm; page-break-inside: avoid;
             }
 
-            /* 2. KARTU: 3 GRID BERJAJAR HORIZONTAL */
+            /* KARTU 3 GRID */
             .print-card-grid { 
                 display: grid !important; 
                 grid-template-columns: repeat(3, 1fr); 
                 width: 287mm; height: 200mm; gap: 5mm;
             }
             .card-tight { 
-                width: 90mm; height: 195mm; border: 1px solid black; 
-                padding: 6mm; position: relative; font-family: 'Courier New', Courier, monospace;
-                page-break-inside: avoid; background: white;
+                width: 88mm; height: 195mm; border: 1px solid black; 
+                padding: 6mm; position: relative; font-family: 'Courier New', monospace;
+                page-break-inside: avoid;
             }
             .qr-card-bottom { position: absolute; bottom: 6mm; left: 6mm; }
+            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 8px; font-size: 9pt; }
         }
 
-        /* TAMPILAN MONITOR */
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
-        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 8pt; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 2px; text-align: center; }
+        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 8pt; }
+        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 2px; }
+        .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -76,13 +69,14 @@
         </nav>
 
         <div id="view-buku" class="p-6 max-w-6xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold">Daftar Buku</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-700">Data Buku</h2>
                 <div class="space-x-2">
                     <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 12 LABEL</button>
                     <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU BUKU</button>
                 </div>
             </div>
+            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input shadow-sm">
             <div class="bg-white rounded-xl border overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
@@ -98,10 +92,11 @@
         </div>
 
         <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold">Daftar Anggota</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-700">Data Anggota</h2>
                 <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU PINJAM</button>
             </div>
+            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input shadow-sm">
             <div class="bg-white rounded-xl border overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-slate-50 border-b">
@@ -139,7 +134,11 @@
         async function loadBuku() {
             const res = await fetch(`${API}/api/buku`);
             bukuData = await res.json();
-            document.getElementById('list-buku').innerHTML = bukuData.map(b => `
+            renderBuku(bukuData);
+        }
+
+        function renderBuku(data) {
+            document.getElementById('list-buku').innerHTML = data.map(b => `
                 <tr>
                     <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5"></td>
                     <td class="p-4 font-bold text-blue-800 uppercase">${b.kode_buku}</td>
@@ -150,12 +149,28 @@
         async function loadAnggota() {
             const res = await fetch(`${API}/api/anggota`);
             anggotaData = await res.json();
-            document.getElementById('list-anggota').innerHTML = anggotaData.map(a => `
+            renderAnggota(anggotaData);
+        }
+
+        function renderAnggota(data) {
+            document.getElementById('list-anggota').innerHTML = data.map(a => `
                 <tr>
                     <td class="p-4 text-center border-r"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota w-5 h-5"></td>
                     <td class="p-4 font-bold">${a.nomor_anggota}</td>
                     <td class="p-4 uppercase">${a.nama_lengkap}</td>
                 </tr>`).join('');
+        }
+
+        function filterBuku() {
+            const val = document.getElementById('searchBuku').value.toLowerCase();
+            const filtered = bukuData.filter(b => b.judul.toLowerCase().includes(val) || b.kode_buku.toLowerCase().includes(val));
+            renderBuku(filtered);
+        }
+
+        function filterAnggota() {
+            const val = document.getElementById('searchAnggota').value.toLowerCase();
+            const filtered = anggotaData.filter(a => a.nama_lengkap.toLowerCase().includes(val) || a.nomor_anggota.toLowerCase().includes(val));
+            renderAnggota(filtered);
         }
 
         function showTab(t) {
@@ -183,7 +198,7 @@
 
             items.forEach((kode, i) => {
                 const box = document.createElement('div'); box.className = 'label-tight';
-                box.innerHTML = `<div id="ql-${i}" class="qr-label-box"></div><div class="text-label-box">${kode.split('.').join('<br>')}</div>`;
+                box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
                 new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 110, height: 110 });
             });
@@ -201,10 +216,11 @@
                 const b = bukuData.find(x => x.kode_buku === kode);
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
-                    <div style="text-align:center; font-weight:bold; border-bottom:2px double black; margin-bottom:8px; font-size:9pt;">KARTU BUKU</div>
+                    <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
+                    <div style="text-align:center; font-weight:bold; font-size:10pt; margin-bottom:5px;">KARTU BUKU</div>
                     <pre style="font-family:inherit; font-size:7.5pt; line-height:1.2; margin-bottom:5px;">Judul: ${b.judul}\nNo Panggil: ${b.kode_buku}</pre>
                     <table class="minimalist">
-                        <tr><th>No</th><th>Peminjam</th><th>Tgl Pinjam</th><th>Tgl Kembali</th></tr>
+                        <tr style="text-align:center;"><th>No</th><th>Peminjam</th><th>Tgl Pinjam</th><th>Tgl Kembali</th></tr>
                         ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
                     <div id="qrbk-${i}" class="qr-card-bottom" style="width:65px;height:65px;"></div>`;
@@ -225,10 +241,11 @@
                 const a = anggotaData.find(x => x.nomor_anggota === nomor);
                 const card = document.createElement('div'); card.className = 'card-tight';
                 card.innerHTML = `
-                    <div style="text-align:center; font-weight:bold; border-bottom:2px double black; margin-bottom:8px; font-size:9pt;">KARTU PINJAMAN BUKU</div>
+                    <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
+                    <div style="text-align:center; font-weight:bold; font-size:10pt; margin-bottom:5px;">KARTU PINJAMAN BUKU</div>
                     <pre style="font-family:inherit; font-size:7.5pt; line-height:1.2; margin-bottom:5px;">Nama: ${a.nama_lengkap}\nNo: ${a.nomor_anggota}\nKelas: ${a.kelas}</pre>
                     <table class="minimalist">
-                        <tr><th>No</th><th>Judul</th><th>Tgl Pinjam</th><th>Paraf</th><th>Tgl Kembali</th></tr>
+                        <tr style="text-align:center;"><th>No</th><th>Judul</th><th>Tgl Pinjam</th><th>Paraf</th><th>Tgl Kembali</th></tr>
                         ${Array(18).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>').join('')}
                     </table>
                     <div id="qrs-${i}" class="qr-card-bottom" style="width:65px;height:65px;"></div>`;
