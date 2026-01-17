@@ -35,7 +35,6 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            /* QR POSISI PALING BAWAH */
             .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; }
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
@@ -47,9 +46,15 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 33 BARIS OPTIMIZED */
+        /* TABEL OPTIMIZED HEIGHT */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
-        table.minimalist th, table.minimalist td { border: 1px solid black; padding: 0px 2px; text-align: center; height: 13.5px; line-height: 1; }
+        table.minimalist th, table.minimalist td { 
+            border: 1px solid black; 
+            padding: 0px 2px; 
+            text-align: center; 
+            height: 16.5px; /* Tinggi baris ditambah agar tabel memanjang ke bawah */
+            line-height: 1; 
+        }
         table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
         
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
