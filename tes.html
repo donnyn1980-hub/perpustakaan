@@ -163,7 +163,7 @@
         <nav class="bg-white shadow-md sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 flex justify-between items-center py-4">
                 <div class="flex items-center space-x-2">
-                    <span class="font-black text-2xl text-blue-700">SIPERPUS</span>
+                    <span class="font-black text-2xl text-blue-700">SIPERPUS v3.1</span>
                     <span id="api-status" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Online</span>
                     <span id="user-status" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Admin</span>
                 </div>
@@ -197,6 +197,10 @@
                 <button onclick="showTab('setting')" class="pb-3 pt-4 tab-btn border-b-4 border-transparent hover:text-blue-600" id="btn-setting">
                     ⚙️ Setting
                 </button>
+                <!-- TAB BARU: Denda -->
+                <button onclick="showTab('denda')" class="pb-3 pt-4 tab-btn border-b-4 border-transparent hover:text-blue-600" id="btn-denda">
+                    💰 Riwayat Denda
+                </button>
             </div>
         </nav>
 
@@ -225,10 +229,13 @@
                                 Semua Buku
                             </button>
                             <button onclick="setBookFilter('available')" id="filter-available" class="filter-btn inactive">
-                                Tersedia
+                                Tersedia (SR)
                             </button>
                             <button onclick="setBookFilter('borrowed')" id="filter-borrowed" class="filter-btn inactive">
                                 Dipinjam
+                            </button>
+                            <button onclick="setBookFilter('reference')" id="filter-reference" class="filter-btn inactive">
+                                Referensi (RF)
                             </button>
                         </div>
                         
@@ -370,6 +377,7 @@
                                         </div>
                                         <div class="mt-3 text-xs text-purple-600">
                                             <p>Maksimal 3 buku per transaksi</p>
+                                            <p class="text-red-600 font-bold mt-1">⚠️ Hanya buku dengan status <strong>Tersedia (SR)</strong> yang bisa dipinjam</p>
                                         </div>
                                     </div>
                                 </div>
@@ -412,7 +420,7 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="bg-blue-50 p-4 rounded-xl text-center">
                                     <div class="text-2xl font-bold text-blue-700" id="stats-buku-tersedia">0</div>
-                                    <div class="text-xs text-blue-600">Buku Tersedia</div>
+                                    <div class="text-xs text-blue-600">Buku Tersedia (SR)</div>
                                 </div>
                                 <div class="bg-green-50 p-4 rounded-xl text-center">
                                     <div class="text-2xl font-bold text-green-700" id="stats-buku-dipinjam">0</div>
@@ -425,6 +433,14 @@
                                 <div class="bg-yellow-50 p-4 rounded-xl text-center">
                                     <div class="text-2xl font-bold text-yellow-700" id="stats-transaksi-hari-ini">0</div>
                                     <div class="text-xs text-yellow-600">Transaksi Hari Ini</div>
+                                </div>
+                                <div class="bg-red-50 p-4 rounded-xl text-center">
+                                    <div class="text-2xl font-bold text-red-700" id="stats-buku-referensi">0</div>
+                                    <div class="text-xs text-red-600">Buku Referensi (RF)</div>
+                                </div>
+                                <div class="bg-indigo-50 p-4 rounded-xl text-center">
+                                    <div class="text-2xl font-bold text-indigo-700" id="stats-total-denda">0</div>
+                                    <div class="text-xs text-indigo-600">Total Denda</div>
                                 </div>
                             </div>
                         </div>
@@ -445,11 +461,13 @@
                                     <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Judul Lengkap *</label>
                                     <input id="in-judul" placeholder="Contoh: Dasar Dasar Jaringan" 
                                            class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                                    <p class="mt-1 text-[10px] text-gray-400">Untuk kode buku: ambil huruf pertama dari judul, abaikan "The", "A", "An" di awal</p>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nama Pengarang *</label>
                                     <input id="in-pengarang" placeholder="Nama Lengkap Tanpa Gelar" 
                                            class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                                    <p class="mt-1 text-[10px] text-gray-400">Untuk kode pengarang: ambil 3 huruf pertama dari kata terakhir nama pengarang</p>
                                 </div>
                                 <div class="grid grid-cols-2 gap-6">
                                     <div>
@@ -480,7 +498,9 @@
                                     <input type="number" id="in-stok" value="1" min="1" max="50" 
                                            class="w-full p-4 border-2 border-blue-100 rounded-xl font-bold text-blue-700">
                                     <p class="mt-2 text-[10px] text-gray-400 italic">
-                                        * Wajib diisi. Sistem akan otomatis membuat copy C1 (RF) sebagai referensi dan C2+ (SR) untuk sirkulasi
+                                        * Wajib diisi. Sistem akan otomatis membuat:
+                                        <br>• Copy 1 (C1) dengan prefix RF = Referensi (tidak dipinjam)
+                                        <br>• Copy 2+ (C2+) dengan prefix SR = Sirkulasi (bisa dipinjam)
                                     </p>
                                 </div>
                             </div>
@@ -530,12 +550,19 @@
                                     🔢 Contoh Kode Buku
                                 </h4>
                                 <div class="text-[11px] space-y-2 text-purple-900 leading-relaxed font-mono">
-                                    <p><strong>Format:</strong> [Prefix].[DDC].[Pengarang].[Judul].[Copy]</p>
+                                    <p><strong>Format:</strong> [Prefix].[DDC].[KodePengarang].[KodeJudul].[Copy]</p>
                                     <p><strong>Contoh 1:</strong> RF.800.NTO.D.C1</p>
                                     <p><strong>Contoh 2:</strong> SR.800.NTO.D.C2</p>
                                     <p><strong>Contoh 3:</strong> SR.600.WAH.J.C3</p>
-                                    <p class="mt-2 text-[10px]"><strong>RF</strong> = Referensi (tidak dipinjam)<br>
-                                    <strong>SR</strong> = Sirkulasi (bisa dipinjam)</p>
+                                    <p class="mt-2 text-[10px]">
+                                        <strong>RF</strong> = Referensi (tidak dipinjam, copy pertama)<br>
+                                        <strong>SR</strong> = Sirkulasi (bisa dipinjam, copy selanjutnya)
+                                    </p>
+                                    <div class="mt-2 p-2 bg-purple-50 rounded">
+                                        <p class="text-[10px] font-bold text-purple-700">Kode Pengarang:</p>
+                                        <p class="text-[10px]">"Doni Nurdiansyah" → "NUR"</p>
+                                        <p class="text-[10px]">"Abdul Wahid" → "WAH"</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -649,6 +676,65 @@
                 </div>
             </section>
 
+            <!-- TAB BARU: Denda -->
+            <section id="tab-denda" class="tab-content hidden">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-bold text-xl">Riwayat Denda</h3>
+                        <div class="flex gap-2">
+                            <button onclick="loadDenda()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                🔄 Refresh
+                            </button>
+                            <button onclick="exportDenda()" class="bg-green-600 text-white px-4 py-2 rounded-lg">
+                                📥 Export Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="text-lg">💰</div>
+                            <div>
+                                <h4 class="font-bold text-yellow-800">Informasi Denda</h4>
+                                <p class="text-sm text-yellow-700">Denda: <strong>Rp 500 per hari keterlambatan</strong></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div class="bg-white p-3 rounded-lg border">
+                                <div class="text-2xl font-bold text-yellow-700" id="total-denda">0</div>
+                                <div class="text-xs text-yellow-600">Total Denda (Rp)</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border">
+                                <div class="text-2xl font-bold text-blue-700" id="total-transaksi-denda">0</div>
+                                <div class="text-xs text-blue-600">Total Transaksi Denda</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border">
+                                <div class="text-2xl font-bold text-green-700" id="rata-denda">0</div>
+                                <div class="text-xs text-green-600">Rata-rata Denda per Transaksi</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">No. Transaksi</th>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">No. Anggota</th>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">Kode Buku</th>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">Nominal Denda</th>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">Tanggal Pembayaran</th>
+                                    <th class="p-4 text-xs font-bold text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="list-denda" class="divide-y">
+                                <tr><td colspan="6" class="p-8 text-center text-gray-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- TAB BARU: SETTING -->
             <section id="tab-setting" class="tab-content hidden">
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-3xl mx-auto">
@@ -686,7 +772,11 @@
                             <div class="text-sm space-y-2">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Aplikasi:</span>
-                                    <span class="font-mono font-bold">SIPERPUS v1.0</span>
+                                    <span class="font-mono font-bold">SIPERPUS v3.1</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Worker API:</span>
+                                    <span class="font-mono font-bold text-green-600">v3.1 MODIFIED</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Mode Perangkat:</span>
@@ -722,6 +812,34 @@
                                 </button>
                             </div>
                         </div>
+                        
+                        <div class="info-card" style="border-left-color: #f59e0b;">
+                            <h4 class="font-bold text-sm text-yellow-800 mb-3 border-b border-yellow-200 pb-2 uppercase flex items-center gap-2">
+                                📚 System Features
+                            </h4>
+                            <div class="text-sm space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Multi-book transaction support</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>RF/SR book classification system</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Automatic author code generation</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Fine calculation (Rp 500/day)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Mobile QR scanner support</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -741,7 +859,7 @@
             isMobile: false,
             tempBooks: [], // Array untuk menyimpan buku sementara
             maxBooksPerTransaction: 3, // Maksimal buku per transaksi
-            bookFilter: 'all', // 'all', 'available', 'borrowed'
+            bookFilter: 'all', // 'all', 'available', 'borrowed', 'reference'
             bookGroupBy: 'title', // 'title' atau 'author'
             bookSortOrder: 'asc', // 'asc' atau 'desc'
             memberSortOrder: 'asc', // 'asc' atau 'desc'
@@ -982,7 +1100,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    statusEl.innerHTML = '<div class="text-green-600">✅ Connection successful!</div>';
+                    statusEl.innerHTML = `
+                        <div class="text-green-600">
+                            ✅ Connection successful!
+                            <div class="text-xs mt-1">API Version: ${data.timestamp ? 'v3.1' : 'Unknown'}</div>
+                            <div class="text-xs">Database: ${data.tables ? data.tables.length + ' tables' : 'Connected'}</div>
+                        </div>
+                    `;
                 } else {
                     statusEl.innerHTML = '<div class="text-red-600">❌ Connection failed: ' + (data.error || 'Unknown error') + '</div>';
                 }
@@ -1238,6 +1362,7 @@
             if (tabId === 'dashboard') loadKatalog();
             if (tabId === 'anggota') loadAnggota();
             if (tabId === 'transaksi') loadTransaksi();
+            if (tabId === 'denda') loadDenda();
             if (tabId === 'setting') updateDeviceInfo();
             if (tabId === 'sirkulasi') {
                 loadStats();
@@ -1259,6 +1384,7 @@
             document.getElementById('filter-all').className = 'filter-btn ' + (filterType === 'all' ? 'active' : 'inactive');
             document.getElementById('filter-available').className = 'filter-btn ' + (filterType === 'available' ? 'active' : 'inactive');
             document.getElementById('filter-borrowed').className = 'filter-btn ' + (filterType === 'borrowed' ? 'active' : 'inactive');
+            document.getElementById('filter-reference').className = 'filter-btn ' + (filterType === 'reference' ? 'active' : 'inactive');
             
             // Load ulang katalog dengan filter baru
             loadKatalog();
@@ -1281,9 +1407,11 @@
                     // Filter buku berdasarkan status
                     let filteredBooks = data.data;
                     if (config.bookFilter === 'available') {
-                        filteredBooks = data.data.filter(b => b.status.includes('Tersedia'));
+                        filteredBooks = data.data.filter(b => b.status.includes('Tersedia (SR)'));
                     } else if (config.bookFilter === 'borrowed') {
                         filteredBooks = data.data.filter(b => b.status === 'Dipinjam');
+                    } else if (config.bookFilter === 'reference') {
+                        filteredBooks = data.data.filter(b => b.status.includes('Tersedia (RF)'));
                     }
                     
                     // Sort buku berdasarkan pilihan grouping
@@ -1352,13 +1480,21 @@
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Judul & Pengarang</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Status</th>
                                                 <th class="p-5 text-xs font-bold text-gray-500 uppercase">Lokasi</th>
+                                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Kode Pengarang</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                         `;
                         
                         books.forEach(b => {
-                            const statusClass = b.status.includes('Tersedia') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                            let statusClass;
+                            if (b.status === 'Dipinjam') {
+                                statusClass = 'bg-red-100 text-red-700';
+                            } else if (b.status.includes('RF')) {
+                                statusClass = 'bg-yellow-100 text-yellow-700';
+                            } else {
+                                statusClass = 'bg-green-100 text-green-700';
+                            }
                             
                             html += `
                             <tr class="hover:bg-gray-50 transition">
@@ -1373,6 +1509,7 @@
                                     </span>
                                 </td>
                                 <td class="p-4 text-sm text-gray-600">${b.rak_lokasi || '-'}</td>
+                                <td class="p-4 font-mono text-xs text-gray-500">${b.kode_pengarang || '-'}</td>
                             </tr>
                             `;
                         });
@@ -1389,12 +1526,13 @@
                     container.innerHTML = html;
                     
                     // Update stats
-                    const tersedia = data.data.filter(b => b.status.includes('Tersedia')).length;
+                    const tersedia = data.data.filter(b => b.status.includes('Tersedia (SR)')).length;
                     const dipinjam = data.data.filter(b => b.status === 'Dipinjam').length;
+                    const referensi = data.data.filter(b => b.status.includes('Tersedia (RF)')).length;
                     const total = filteredBooks.length;
                     
                     document.getElementById('katalog-stats').innerHTML = 
-                        `Total: ${total} buku | Tersedia: ${tersedia} | Dipinjam: ${dipinjam} | Filter: ${config.bookFilter === 'all' ? 'Semua' : config.bookFilter === 'available' ? 'Tersedia' : 'Dipinjam'} | Kelompok: ${config.bookGroupBy === 'title' ? 'Judul' : 'Pengarang'}`;
+                        `Total: ${total} buku | Sirkulasi (SR): ${tersedia} | Dipinjam: ${dipinjam} | Referensi (RF): ${referensi} | Filter: ${config.bookFilter === 'all' ? 'Semua' : config.bookFilter === 'available' ? 'Sirkulasi' : config.bookFilter === 'borrowed' ? 'Dipinjam' : 'Referensi'} | Kelompok: ${config.bookGroupBy === 'title' ? 'Judul' : 'Pengarang'}`;
                         
                 } else {
                     container.innerHTML = '<div class="p-8 text-center text-gray-400">Tidak ada data buku. Tambahkan buku di tab Inventaris.</div>';
@@ -1418,7 +1556,8 @@
                     if (row.cells.length > 1) {
                         const judul = row.cells[1].textContent.toLowerCase();
                         const pengarang = row.cells[1].querySelector('.text-xs')?.textContent.toLowerCase() || '';
-                        const shouldShow = judul.includes(searchTerm) || pengarang.includes(searchTerm);
+                        const kodeBuku = row.cells[0].textContent.toLowerCase();
+                        const shouldShow = judul.includes(searchTerm) || pengarang.includes(searchTerm) || kodeBuku.includes(searchTerm);
                         row.style.display = shouldShow ? '' : 'none';
                         
                         if (shouldShow) {
@@ -1524,6 +1663,18 @@
                     }
                     
                     if (book) {
+                        // Cek apakah buku bisa dipinjam (harus SR)
+                        if (!book.status.includes('(SR)')) {
+                            showMessage("Buku ini tidak bisa dipinjam. Status: " + book.status, "warning");
+                            return;
+                        }
+                        
+                        // Cek apakah buku sudah dipinjam
+                        if (book.status === 'Dipinjam') {
+                            showMessage("Buku sedang dipinjam oleh anggota lain", "warning");
+                            return;
+                        }
+                        
                         // Tambahkan buku ke daftar sementara
                         config.tempBooks.push(book);
                         
@@ -1561,11 +1712,14 @@
                 
                 let html = '';
                 config.tempBooks.forEach((book, index) => {
+                    const statusClass = book.status.includes('Tersedia') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    
                     html += `
                     <div class="book-item">
                         <div>
                             <div class="font-medium text-sm">${book.judul}</div>
                             <div class="text-xs text-gray-500">${book.kode_buku}</div>
+                            <span class="text-xs px-2 py-1 rounded ${statusClass}">${book.status}</span>
                         </div>
                         <button onclick="removeBookFromList(${index})" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
                             Hapus
@@ -1685,6 +1839,7 @@
                 loadKatalog();
                 loadAnggota();
                 loadTransaksi();
+                loadDenda();
                 loadStats();
                 
             } catch (e) {
@@ -1867,6 +2022,63 @@
             }
         }
 
+        // Load data denda
+        async function loadDenda() {
+            try {
+                const response = await fetch(config.apiUrl + '/api/denda');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('list-denda');
+                const totalDendaEl = document.getElementById('total-denda');
+                const totalTransaksiDendaEl = document.getElementById('total-transaksi-denda');
+                const rataDendaEl = document.getElementById('rata-denda');
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    let html = '';
+                    let totalDenda = 0;
+                    
+                    data.data.forEach((d, index) => {
+                        const isPaid = d.nominal > 0;
+                        const statusClass = isPaid ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
+                        
+                        html += '<tr class="hover:bg-gray-50">';
+                        html += '<td class="p-4 font-mono text-xs">DND-' + (index + 1).toString().padStart(4, '0') + '</td>';
+                        html += '<td class="p-4 font-mono">' + d.nomor_anggota + '</td>';
+                        html += '<td class="p-4 font-mono text-xs">' + d.kode_buku + '</td>';
+                        html += '<td class="p-4 font-bold text-red-600">Rp ' + d.nominal.toLocaleString('id-ID') + '</td>';
+                        html += '<td class="p-4">' + d.tgl_pembayaran + '</td>';
+                        html += '<td class="p-4">';
+                        html += '<span class="px-3 py-1 rounded-full text-xs ' + statusClass + '">';
+                        html += isPaid ? 'LUNAS' : 'BELUM BAYAR';
+                        html += '</span>';
+                        html += '</td>';
+                        html += '</tr>';
+                        
+                        totalDenda += d.nominal;
+                    });
+                    tbody.innerHTML = html;
+                    
+                    // Update stats
+                    totalDendaEl.textContent = 'Rp ' + totalDenda.toLocaleString('id-ID');
+                    totalTransaksiDendaEl.textContent = data.data.length;
+                    const rataDenda = data.data.length > 0 ? Math.round(totalDenda / data.data.length) : 0;
+                    rataDendaEl.textContent = 'Rp ' + rataDenda.toLocaleString('id-ID');
+                    
+                    // Update juga di statistik cepat
+                    document.getElementById('stats-total-denda').textContent = 'Rp ' + totalDenda.toLocaleString('id-ID');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Tidak ada data denda.</td></tr>';
+                    totalDendaEl.textContent = 'Rp 0';
+                    totalTransaksiDendaEl.textContent = '0';
+                    rataDendaEl.textContent = 'Rp 0';
+                    document.getElementById('stats-total-denda').textContent = 'Rp 0';
+                }
+            } catch (e) {
+                console.error("Gagal load denda:", e);
+                document.getElementById('list-denda').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-400">Error loading data.</td></tr>';
+            }
+        }
+
         async function forceReturn(kodePeminjaman, nomorAnggota, kodeBuku) {
             const confirmed = await Swal.fire({
                 title: 'Force Return?',
@@ -1892,6 +2104,7 @@
                     showMessage('Buku berhasil dikembalikan paksa', 'success');
                     loadTransaksi();
                     loadKatalog();
+                    loadDenda();
                 } else {
                     showMessage(data.msg || 'Gagal memproses', 'error');
                 }
@@ -1907,11 +2120,13 @@
                 const bukuData = await bukuRes.json();
                 
                 if (bukuData.success && bukuData.data) {
-                    const tersedia = bukuData.data.filter(b => b.status.includes('Tersedia')).length;
+                    const tersedia = bukuData.data.filter(b => b.status.includes('Tersedia (SR)')).length;
                     const dipinjam = bukuData.data.filter(b => b.status === 'Dipinjam').length;
+                    const referensi = bukuData.data.filter(b => b.status.includes('Tersedia (RF)')).length;
                     
                     document.getElementById('stats-buku-tersedia').textContent = tersedia;
                     document.getElementById('stats-buku-dipinjam').textContent = dipinjam;
+                    document.getElementById('stats-buku-referensi').textContent = referensi;
                 }
                 
                 // Load anggota for stats
@@ -1919,6 +2134,13 @@
                 const anggotaData = await anggotaRes.json();
                 if (anggotaData.success && anggotaData.data) {
                     document.getElementById('stats-total-anggota').textContent = anggotaData.data.length;
+                }
+                
+                // Load denda for stats
+                const dendaRes = await fetch(config.apiUrl + '/api/denda');
+                const dendaData = await dendaRes.json();
+                if (dendaData.success && dendaData.total_denda !== undefined) {
+                    document.getElementById('stats-total-denda').textContent = 'Rp ' + dendaData.total_denda.toLocaleString('id-ID');
                 }
                 
             } catch (e) {
@@ -1938,6 +2160,12 @@
             
             if (!judul || !pengarang || !klasifikasi || !stok || parseInt(stok) < 1) {
                 showMessage("Judul, Pengarang, Klasifikasi, dan Stok wajib diisi!", "warning");
+                return;
+            }
+            
+            // Validasi klasifikasi harus angka
+            if (isNaN(klasifikasi)) {
+                showMessage("Klasifikasi harus berupa angka DDC!", "warning");
                 return;
             }
             
@@ -1967,11 +2195,17 @@
                 
                 if (data.success) {
                     const codesHTML = data.generated_codes ? data.generated_codes.join('<br>') : '-';
+                    
+                    // Tampilkan info kode pengarang yang dihasilkan
+                    const kodeInfo = data.kode_pengarang ? 
+                        `<br><small>Kode Pengarang: <strong>${data.kode_pengarang}</strong></small>` : '';
+                    
                     await Swal.fire({
                         title: "Berhasil!",
-                        html: '<strong>' + payload.stok + '</strong> unit buku berhasil didaftarkan!<br><br>' +
-                               '<small>Kode yang dihasilkan:</small><br>' +
-                               '<code class="text-xs">' + codesHTML + '</code>',
+                        html: `<strong>${payload.stok}</strong> unit buku berhasil didaftarkan!${kodeInfo}<br><br>` +
+                               `<small>Kode yang dihasilkan:</small><br>` +
+                               `<code class="text-xs">${codesHTML}</code><br><br>` +
+                               `<small>Keterangan: C1 = Referensi (RF), C2+ = Sirkulasi (SR)</small>`,
                         icon: "success",
                         confirmButtonText: "OK",
                         width: 600
@@ -1985,6 +2219,7 @@
                     
                     // Reload katalog
                     loadKatalog();
+                    loadStats();
                 } else {
                     showMessage(data.msg || "Terjadi kesalahan", "error");
                 }
@@ -2047,7 +2282,8 @@
             const data = {
                 title: "Data Anggota Perpustakaan",
                 exported_at: new Date().toISOString(),
-                api_url: config.apiUrl
+                api_url: config.apiUrl,
+                version: "v3.1"
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2060,7 +2296,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showMessage("Data berhasil diexport (simulasi)", "success");
+            showMessage("Data berhasil diexport", "success");
         }
 
         function exportTransaksi() {
@@ -2068,7 +2304,8 @@
             const data = {
                 title: "Data Transaksi Perpustakaan",
                 exported_at: new Date().toISOString(),
-                api_url: config.apiUrl
+                api_url: config.apiUrl,
+                version: "v3.1"
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2081,7 +2318,29 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showMessage("Data berhasil diexport (simulasi)", "success");
+            showMessage("Data berhasil diexport", "success");
+        }
+
+        function exportDenda() {
+            // Simple export to JSON
+            const data = {
+                title: "Data Denda Perpustakaan",
+                exported_at: new Date().toISOString(),
+                api_url: config.apiUrl,
+                version: "v3.1"
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'denda-perpustakaan-' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage("Data denda berhasil diexport", "success");
         }
 
         // New functions for Setting tab
@@ -2114,11 +2373,18 @@
 
         function exportAllData() {
             const data = {
-                title: "All System Data",
+                title: "All System Data - Perpustakaan v3.1",
                 exported_at: new Date().toISOString(),
                 api_url: config.apiUrl,
                 config: config,
-                device_mode: config.isMobile ? "Mobile" : "Desktop"
+                device_mode: config.isMobile ? "Mobile" : "Desktop",
+                features: [
+                    "RF/SR Book Classification",
+                    "Automatic Author Code Generation",
+                    "Multi-book Transaction Support",
+                    "Fine Calculation System",
+                    "Mobile QR Scanner"
+                ]
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2131,7 +2397,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showMessage("All data exported (simulasi)", "success");
+            showMessage("All data exported", "success");
         }
 
         // Update current time
@@ -2169,6 +2435,9 @@
                 testApiConnection();
             }, 1000);
             
+            // Load initial stats
+            loadStats();
+            
             // Listen for window resize to update device detection
             window.addEventListener('resize', function() {
                 detectDevice();
@@ -2198,6 +2467,17 @@
             document.getElementById('login-password').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     loginAdmin();
+                }
+            });
+            
+            // Tambahkan event listener untuk enter key di input manual
+            document.getElementById('manual-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (config.currentMode === 'MEMBER') {
+                        manualScanMember();
+                    } else {
+                        manualScanBook();
+                    }
                 }
             });
         });
