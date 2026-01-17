@@ -35,7 +35,7 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; }
+            .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; border: 1px solid #eee; }
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
             /* IDENTITAS SIMETRIS */
@@ -52,7 +52,7 @@
             border: 1px solid black; 
             padding: 0px 2px; 
             text-align: center; 
-            height: 16.5px; /* Tinggi baris ditambah agar tabel memanjang ke bawah */
+            height: 20px; /* Tinggi baris disesuaikan karena jumlah baris berkurang */
             line-height: 1; 
         }
         table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
@@ -215,10 +215,10 @@
                 box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
                 const qrelem = document.getElementById(`ql-${i}`);
-                qrelem.innerHTML = ""; // Pastikan kosong
+                qrelem.innerHTML = "";
                 new QRCode(qrelem, { text: kode, width: 110, height: 110 });
             });
-            setTimeout(() => window.print(), 1200);
+            setTimeout(() => window.print(), 1500);
         }
 
         function cetakKartuBuku() {
@@ -240,15 +240,15 @@
                     </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        ${Array(25).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:70px;height:70px;"></div>`;
+                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:90px;height:90px;"></div>`;
                 area.appendChild(card);
                 const qrelem = document.getElementById(`qrbk-${i}`);
-                qrelem.innerHTML = ""; // Pastikan kosong
-                new QRCode(qrelem, { text: b.kode_buku, width: 70, height: 70 });
+                qrelem.innerHTML = "";
+                new QRCode(qrelem, { text: b.kode_buku, width: 90, height: 90 });
             });
-            setTimeout(() => window.print(), 1200);
+            setTimeout(() => window.print(), 1500);
         }
 
         function cetakKartuPinjam() {
@@ -271,15 +271,15 @@
                     </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
+                        ${Array(25).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrs-${i}" class="qr-card-bottom" style="width:70px;height:70px;"></div>`;
+                    <div id="qrs-${i}" class="qr-card-bottom" style="width:90px;height:90px;"></div>`;
                 area.appendChild(card);
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.innerHTML = ""; // Pastikan kosong
-                new QRCode(qrelem, { text: a.nomor_anggota, width: 70, height: 70 });
+                qrelem.innerHTML = "";
+                new QRCode(qrelem, { text: a.nomor_anggota, width: 90, height: 90 });
             });
-            setTimeout(() => window.print(), 1200);
+            setTimeout(() => window.print(), 1500);
         }
     </script>
 </body>
