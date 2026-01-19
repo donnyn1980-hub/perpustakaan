@@ -17,7 +17,7 @@
                 display: grid !important; 
                 grid-template-columns: repeat(4, 1fr); 
                 grid-template-rows: repeat(3, 1fr);
-                width: 285mm; height: 198mm; gap: 6mm;
+                width: 287mm; height: 200mm; gap: 2mm;
             }
             .label-tight { 
                 border: 1px solid black; display: flex; flex-direction: row; 
@@ -321,14 +321,14 @@
                 box.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:110px;">
                         <div style="font-size:8pt; font-weight:bold; text-align:center; line-height:1; margin-bottom:2px;">Perpustakaan<br>SMAN 2 Cikarang Barat</div>
-                        <div id="ql-${i}" style="width:110px;height:110px;"></div>
+                        <div id="ql-${i}" style="width:120px;height:110px;"></div>
                     </div>
                     <div class="flex-1 text-center font-bold text-[18pt] leading-tight font-mono ml-2">${formattedKode}</div>
                 `;
                 area.appendChild(box);
                 // Generate QR Code
                 new QRCode(document.getElementById(`ql-${i}`), { 
-                    text: kode, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M 
+                    text: kode, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.M 
                 });
             });
             
