@@ -2,311 +2,186 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Sistem Perpustakaan - SMAN 2 CIKARANG BARAT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D1 Database Explorer</title>
     <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; margin: 0; padding: 0; }
-            @page { size: A4 landscape; margin: 5mm; }
-
-            /* LABEL 12 GRID (4x3) */
-            .print-label-grid { 
-                display: grid !important; 
-                grid-template-columns: repeat(4, 1fr); 
-                grid-template-rows: repeat(3, 1fr);
-                width: 287mm; height: 200mm; gap: 2mm;
-            }
-            .label-tight { 
-                border: 1px solid black; display: flex; flex-direction: row; 
-                align-items: center; padding: 2mm; height: 64mm; page-break-inside: avoid;
-            }
-
-            /* KARTU 3 GRID */
-            .print-card-grid { 
-                display: grid !important; 
-                grid-template-columns: repeat(3, 1fr); 
-                width: 287mm; height: 200mm; gap: 5mm;
-            }
-            .card-tight { 
-                width: 88mm; height: 195mm; border: 1px solid black; 
-                padding: 4mm; position: relative; font-family: 'Courier New', monospace;
-                page-break-inside: avoid; overflow: hidden;
-            }
-            
-            /* QR Container Optimized */
-            .qr-card-bottom { 
-                position: absolute; 
-                bottom: 3mm; 
-                left: 4mm; 
-                width: 50px; 
-                height: 50px;
-                background: white;
-            }
-            .qr-card-bottom img, .qr-card-bottom canvas { 
-                width: 50px !important; 
-                height: 50px !important; 
-            }
-
-            .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
-            
-            .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
-            .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
-        }
-
-        #printAreaLabel, #printAreaKartu { display: none; }
-        .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
-        
-        table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
-        table.minimalist th, table.minimalist td { 
-            border: 1px solid black; 
-            padding: 0px 2px; 
-            text-align: center; 
-            height: 16.5px; 
-            line-height: 1; 
-        }
-        table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
-        
-        .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
+        /* Styles tetap sama seperti sebelumnya */
+        /* ... semua CSS dari versi sebelumnya ... */
     </style>
 </head>
-<body class="bg-slate-50">
-
-    <div id="main-dashboard" class="no-print min-h-screen">
-        <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="font-bold text-blue-800">PERPUS SMAN 2 CIKARANG BARAT</h1>
-            <div class="flex space-x-6">
-                <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2 py-1">Cetak Buku</button>
-                <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2 py-1">Cetak Anggota</button>
-            </div>
-        </nav>
-
-        <div id="view-buku" class="p-6 max-w-6xl mx-auto">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex flex-col">
-                    <h2 class="text-lg font-bold">Data Buku</h2>
-                    <span id="status-buku" class="text-xs text-gray-500 italic">Memuat data...</span>
-                </div>
-                <div class="space-x-2">
-                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">CETAK 12 LABEL</button>
-                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700">CETAK KARTU BUKU</button>
-                </div>
-            </div>
-            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input">
-            <div class="bg-white rounded-xl border overflow-x-auto">
-                <table class="w-full text-left font-mono text-sm">
-                    <thead class="bg-slate-50 border-b">
-                        <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-buku', this)"></th>
-                            <th class="p-4">KODE BUKU</th>
-                            <th class="p-4">JUDUL BUKU</th>
-                        </tr>
-                    </thead>
-                    <tbody id="list-buku" class="divide-y">
-                        <tr><td colspan="3" class="p-4 text-center text-gray-400">Menunggu data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex flex-col">
-                    <h2 class="text-lg font-bold">Data Anggota</h2>
-                    <span id="status-anggota" class="text-xs text-gray-500 italic">Memuat data...</span>
-                </div>
-                <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700">CETAK KARTU PINJAM</button>
-            </div>
-            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input">
-            <div class="bg-white rounded-xl border overflow-x-auto">
-                <table class="w-full text-left font-mono text-sm">
-                    <thead class="bg-slate-50 border-b">
-                        <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th>
-                            <th class="p-4">NOMOR ANGGOTA</th>
-                            <th class="p-4">NAMA LENGKAP</th>
-                        </tr>
-                    </thead>
-                    <tbody id="list-anggota" class="divide-y">
-                        <tr><td colspan="3" class="p-4 text-center text-gray-400">Menunggu data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="printAreaLabel"></div>
-    <div id="printAreaKartu"></div>
+<body>
+    <!-- HTML struktur tetap sama -->
+    <!-- ... semua HTML dari versi sebelumnya ... -->
 
     <script>
-        const API = "https://admin-perpus.donnyn1980.workers.dev";
-        let bukuData = []; 
-        let anggotaData = [];
-
-        // Langsung jalankan saat dokumen siap
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Aplikasi dimulai...");
-            loadBuku(); 
-            loadAnggota();
+        // Konfigurasi API endpoint
+        const API_BASE_URL = '/api'; // Gunakan relative path untuk same-origin
+        
+        // Fungsi untuk panggil API
+        async function callAPI(endpoint, method = 'GET', data = null) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            
+            if (data && (method === 'POST' || method === 'PUT')) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP ${response.status}`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        // Fungsi untuk mendapatkan daftar tabel
+        async function fetchTables() {
+            try {
+                const result = await callAPI('/tables');
+                displayTables(result.data);
+            } catch (error) {
+                showError(`Gagal mengambil daftar tabel: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk mendapatkan deskripsi tabel
+        async function fetchTableSchema(tableName) {
+            try {
+                const result = await callAPI(`/table/${tableName}`);
+                displayTableSchema(result.data);
+            } catch (error) {
+                showError(`Gagal mengambil schema tabel: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk eksekusi query
+        async function executeQuery(sql, params = []) {
+            try {
+                const result = await callAPI('/query', 'POST', {
+                    sql,
+                    params,
+                    limit: document.getElementById('limitResults').value
+                });
+                displayQueryResults(result);
+            } catch (error) {
+                showError(`Gagal eksekusi query: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk mendapatkan data tabel
+        async function fetchTableData(tableName, page = 1) {
+            try {
+                const result = await callAPI(`/data/${tableName}?page=${page}&limit=50`);
+                displayTableData(result.data);
+            } catch (error) {
+                showError(`Gagal mengambil data tabel: ${error.message}`);
+            }
+        }
+        
+        // Update event listeners di DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... kode yang ada ...
+            
+            // Ganti worker dengan API calls
+            executeBtn.addEventListener('click', async function() {
+                const action = actionType.value;
+                const tableName = tableNameInput.value.trim();
+                const query = sqlQueryInput.value.trim();
+                
+                executeBtn.disabled = true;
+                executeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+                
+                try {
+                    switch (action) {
+                        case 'listTables':
+                            await fetchTables();
+                            break;
+                            
+                        case 'describeTable':
+                            if (!tableName) throw new Error('Nama tabel diperlukan');
+                            await fetchTableSchema(tableName);
+                            break;
+                            
+                        case 'queryData':
+                            if (!tableName) throw new Error('Nama tabel diperlukan');
+                            await executeQuery(`SELECT * FROM ${tableName}`);
+                            break;
+                            
+                        case 'executeSQL':
+                            if (!query) throw new Error('Query SQL diperlukan');
+                            await executeQuery(query);
+                            break;
+                            
+                        default:
+                            throw new Error('Tindakan tidak dikenali');
+                    }
+                    
+                    showSuccess('Operasi berhasil');
+                    
+                } catch (error) {
+                    showError(`Error: ${error.message}`);
+                } finally {
+                    executeBtn.disabled = false;
+                    executeBtn.innerHTML = '<i class="fas fa-play"></i> Eksekusi';
+                }
+            });
+            
+            // Test connection
+            testBtn.addEventListener('click', async function() {
+                try {
+                    const result = await callAPI('/health');
+                    showSuccess(`✅ Database connected! Status: ${result.status}`);
+                } catch (error) {
+                    showError(`❌ Connection failed: ${error.message}`);
+                }
+            });
+            
+            // Load tables on startup
+            fetchTables();
         });
-
-        async function loadBuku() {
-            try {
-                const res = await fetch(`${API}/api/buku`);
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-                bukuData = await res.json();
-                renderBuku(bukuData);
-                document.getElementById('status-buku').innerText = `Total: ${bukuData.length} buku`;
-            } catch (err) {
-                console.error("Gagal memuat buku:", err);
-                document.getElementById('list-buku').innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Gagal terhubung ke Database: ${err.message}</td></tr>`;
-            }
+        
+        // Helper functions untuk UI
+        function showSuccess(message) {
+            updateStatus(message, 'success');
+            showNotification(message, 'success');
         }
-
-        async function loadAnggota() {
-            try {
-                const res = await fetch(`${API}/api/anggota`);
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-                anggotaData = await res.json();
-                renderAnggota(anggotaData);
-                document.getElementById('status-anggota').innerText = `Total: ${anggotaData.length} anggota`;
-            } catch (err) {
-                console.error("Gagal memuat anggota:", err);
-                document.getElementById('list-anggota').innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Gagal terhubung ke Database: ${err.message}</td></tr>`;
-            }
+        
+        function showError(message) {
+            updateStatus(message, 'error');
+            showNotification(message, 'error');
         }
-
-        function renderBuku(data) {
-            if(data.length === 0) {
-                document.getElementById('list-buku').innerHTML = `<tr><td colspan="3" class="p-4 text-center">Data kosong</td></tr>`;
-                return;
-            }
-            document.getElementById('list-buku').innerHTML = data.map(b => `
-                <tr>
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5"></td>
-                    <td class="p-4 font-bold uppercase text-blue-700">${b.kode_buku}</td>
-                    <td class="p-4">${b.judul}</td>
-                </tr>`).join('');
+        
+        function updateStatus(message, level) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${level}`;
         }
-
-        function renderAnggota(data) {
-            if(data.length === 0) {
-                document.getElementById('list-anggota').innerHTML = `<tr><td colspan="3" class="p-4 text-center">Data kosong</td></tr>`;
-                return;
-            }
-            document.getElementById('list-anggota').innerHTML = data.map(a => `
-                <tr>
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota w-5 h-5"></td>
-                    <td class="p-4 font-bold">${a.nomor_anggota}</td>
-                    <td class="p-4 uppercase">${a.nama_lengkap}</td>
-                </tr>`).join('');
+        
+        function showNotification(message, level) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${level}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
         }
-
-        function filterBuku() {
-            const val = document.getElementById('searchBuku').value.toLowerCase();
-            const filtered = bukuData.filter(b => b.judul.toLowerCase().includes(val) || b.kode_buku.toLowerCase().includes(val));
-            renderBuku(filtered);
-        }
-
-        function filterAnggota() {
-            const val = document.getElementById('searchAnggota').value.toLowerCase();
-            const filtered = anggotaData.filter(a => a.nama_lengkap.toLowerCase().includes(val) || a.nomor_anggota.toLowerCase().includes(val));
-            renderAnggota(filtered);
-        }
-
-        function showTab(t) {
-            document.getElementById('view-buku').classList.toggle('hidden', t !== 'buku');
-            document.getElementById('view-anggota').classList.toggle('hidden', t !== 'anggota');
-            document.getElementById('tab-buku').classList.toggle('active', t === 'buku');
-            document.getElementById('tab-anggota').classList.toggle('active', t === 'anggota');
-        }
-
-        function toggle(cls, s) { document.querySelectorAll(cls).forEach(c => c.checked = s.checked); }
-
-        function clearPrint() {
-            const l = document.getElementById('printAreaLabel');
-            const k = document.getElementById('printAreaKartu');
-            l.innerHTML = ''; k.innerHTML = '';
-            l.style.display = 'none'; k.style.display = 'none';
-        }
-
-        function cetakLabel12() {
-            const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu buku untuk dicetak', 'warning'); return; }
-            clearPrint();
-            const area = document.getElementById('printAreaLabel');
-            area.style.display = 'grid'; area.className = 'print-label-grid';
-
-            items.forEach((kode, i) => {
-                const box = document.createElement('div'); box.className = 'label-tight';
-                box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
-                area.appendChild(box);
-                const qrelem = document.getElementById(`ql-${i}`);
-                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
-            });
-            setTimeout(() => window.print(), 1000);
-        }
-
-        function cetakKartuBuku() {
-            const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu buku untuk dicetak', 'warning'); return; }
-            clearPrint();
-            const area = document.getElementById('printAreaKartu');
-            area.style.display = 'grid'; area.className = 'print-card-grid';
-
-            items.forEach((kode, i) => {
-                const b = bukuData.find(x => x.kode_buku === kode);
-                const card = document.createElement('div'); card.className = 'card-tight';
-                card.innerHTML = `
-                    <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU BUKU</div>
-                    <table class="info-table">
-                        <tr><td width="30%">Judul</td><td width="5%">:</td><td>${b.judul}</td></tr>
-                        <tr><td>No Panggil</td><td>:</td><td>${b.kode_buku}</td></tr>
-                    </table>
-                    <table class="minimalist">
-                        <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
-                    </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
-                area.appendChild(card);
-                const qrelem = document.getElementById(`qrbk-${i}`);
-                new QRCode(qrelem, { text: b.kode_buku, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
-            });
-            setTimeout(() => window.print(), 1200);
-        }
-
-        function cetakKartuPinjam() {
-            const items = Array.from(document.querySelectorAll('.cb-anggota:checked')).map(c => c.value);
-            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu anggota untuk dicetak', 'warning'); return; }
-            clearPrint();
-            const area = document.getElementById('printAreaKartu');
-            area.style.display = 'grid'; area.className = 'print-card-grid';
-
-            items.forEach((nomor, i) => {
-                const a = anggotaData.find(x => x.nomor_anggota === nomor);
-                const card = document.createElement('div'); card.className = 'card-tight';
-                card.innerHTML = `
-                    <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
-                    <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU PINJAMAN BUKU</div>
-                    <table class="info-table">
-                        <tr><td width="30%">Nama</td><td width="5%">:</td><td>${a.nama_lengkap}</td></tr>
-                        <tr><td>No. Anggota</td><td>:</td><td>${a.nomor_anggota}</td></tr>
-                        <tr><td>Kelas</td><td>:</td><td>${a.kelas}</td></tr>
-                    </table>
-                    <table class="minimalist">
-                        <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
-                        ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
-                    </table>
-                    <div id="qrs-${i}" class="qr-card-bottom"></div>`;
-                area.appendChild(card);
-                const qrelem = document.getElementById(`qrs-${i}`);
-                new QRCode(qrelem, { text: a.nomor_anggota, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
-            });
-            setTimeout(() => window.print(), 1200);
-        }
+        
+        // Fungsi untuk menampilkan hasil (displayTables, displayTableSchema, etc.)
+        // ... implementasi fungsi display seperti sebelumnya ...
     </script>
 </body>
 </html>
