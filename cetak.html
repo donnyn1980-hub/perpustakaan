@@ -45,7 +45,6 @@
                 height: 50px;
                 background: white;
             }
-            /* Memastikan hasil render canvas/img tajam dan pas di 50px */
             .qr-card-bottom img, .qr-card-bottom canvas { 
                 width: 50px !important; 
                 height: 50px !important; 
@@ -53,7 +52,6 @@
 
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
-            /* IDENTITAS SIMETRIS */
             .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
             .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
@@ -61,7 +59,6 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 33 BARIS */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
@@ -88,10 +85,13 @@
 
         <div id="view-buku" class="p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">Data Buku</h2>
+                <div class="flex flex-col">
+                    <h2 class="text-lg font-bold">Data Buku</h2>
+                    <span id="status-buku" class="text-xs text-gray-500 italic">Memuat data...</span>
+                </div>
                 <div class="space-x-2">
-                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 12 LABEL</button>
-                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU BUKU</button>
+                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">CETAK 12 LABEL</button>
+                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700">CETAK KARTU BUKU</button>
                 </div>
             </div>
             <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input">
@@ -104,15 +104,20 @@
                             <th class="p-4">JUDUL BUKU</th>
                         </tr>
                     </thead>
-                    <tbody id="list-buku" class="divide-y"></tbody>
+                    <tbody id="list-buku" class="divide-y">
+                        <tr><td colspan="3" class="p-4 text-center text-gray-400">Menunggu data...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
 
         <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">Data Anggota</h2>
-                <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU PINJAM</button>
+                <div class="flex flex-col">
+                    <h2 class="text-lg font-bold">Data Anggota</h2>
+                    <span id="status-anggota" class="text-xs text-gray-500 italic">Memuat data...</span>
+                </div>
+                <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700">CETAK KARTU PINJAM</button>
             </div>
             <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input">
             <div class="bg-white rounded-xl border overflow-x-auto">
@@ -124,7 +129,9 @@
                             <th class="p-4">NAMA LENGKAP</th>
                         </tr>
                     </thead>
-                    <tbody id="list-anggota" class="divide-y"></tbody>
+                    <tbody id="list-anggota" class="divide-y">
+                        <tr><td colspan="3" class="p-4 text-center text-gray-400">Menunggu data...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -135,21 +142,47 @@
 
     <script>
         const API = "https://admin-perpus.donnyn1980.workers.dev";
-        let bukuData = []; let anggotaData = [];
+        let bukuData = []; 
+        let anggotaData = [];
 
-        // Langsung muat data saat halaman dibuka (Login dihapus)
-        window.onload = () => {
+        // Langsung jalankan saat dokumen siap
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Aplikasi dimulai...");
             loadBuku(); 
             loadAnggota();
-        };
+        });
 
         async function loadBuku() {
-            const res = await fetch(`${API}/api/buku`);
-            bukuData = await res.json();
-            renderBuku(bukuData);
+            try {
+                const res = await fetch(`${API}/api/buku`);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                bukuData = await res.json();
+                renderBuku(bukuData);
+                document.getElementById('status-buku').innerText = `Total: ${bukuData.length} buku`;
+            } catch (err) {
+                console.error("Gagal memuat buku:", err);
+                document.getElementById('list-buku').innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Gagal terhubung ke Database: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function loadAnggota() {
+            try {
+                const res = await fetch(`${API}/api/anggota`);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                anggotaData = await res.json();
+                renderAnggota(anggotaData);
+                document.getElementById('status-anggota').innerText = `Total: ${anggotaData.length} anggota`;
+            } catch (err) {
+                console.error("Gagal memuat anggota:", err);
+                document.getElementById('list-anggota').innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500 font-bold">Gagal terhubung ke Database: ${err.message}</td></tr>`;
+            }
         }
 
         function renderBuku(data) {
+            if(data.length === 0) {
+                document.getElementById('list-buku').innerHTML = `<tr><td colspan="3" class="p-4 text-center">Data kosong</td></tr>`;
+                return;
+            }
             document.getElementById('list-buku').innerHTML = data.map(b => `
                 <tr>
                     <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5"></td>
@@ -158,13 +191,11 @@
                 </tr>`).join('');
         }
 
-        async function loadAnggota() {
-            const res = await fetch(`${API}/api/anggota`);
-            anggotaData = await res.json();
-            renderAnggota(anggotaData);
-        }
-
         function renderAnggota(data) {
+            if(data.length === 0) {
+                document.getElementById('list-anggota').innerHTML = `<tr><td colspan="3" class="p-4 text-center">Data kosong</td></tr>`;
+                return;
+            }
             document.getElementById('list-anggota').innerHTML = data.map(a => `
                 <tr>
                     <td class="p-4 text-center border-r"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota w-5 h-5"></td>
@@ -203,7 +234,7 @@
 
         function cetakLabel12() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu buku untuk dicetak', 'warning'); return; }
             clearPrint();
             const area = document.getElementById('printAreaLabel');
             area.style.display = 'grid'; area.className = 'print-label-grid';
@@ -213,7 +244,6 @@
                 box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
                 const qrelem = document.getElementById(`ql-${i}`);
-                qrelem.innerHTML = '';
                 new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
             });
             setTimeout(() => window.print(), 1000);
@@ -221,7 +251,7 @@
 
         function cetakKartuBuku() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu buku untuk dicetak', 'warning'); return; }
             clearPrint();
             const area = document.getElementById('printAreaKartu');
             area.style.display = 'grid'; area.className = 'print-card-grid';
@@ -243,7 +273,6 @@
                     <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
                 const qrelem = document.getElementById(`qrbk-${i}`);
-                qrelem.innerHTML = '';
                 new QRCode(qrelem, { text: b.kode_buku, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
             });
             setTimeout(() => window.print(), 1200);
@@ -251,7 +280,7 @@
 
         function cetakKartuPinjam() {
             const items = Array.from(document.querySelectorAll('.cb-anggota:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Pilih Data', 'Pilih minimal satu anggota untuk dicetak', 'warning'); return; }
             clearPrint();
             const area = document.getElementById('printAreaKartu');
             area.style.display = 'grid'; area.className = 'print-card-grid';
@@ -273,17 +302,8 @@
                     </table>
                     <div id="qrs-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
-                
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.innerHTML = ''; // Pastikan bersih
-                
-                // Render High-DPI (128px) lalu dikecilkan CSS ke 50px agar tajam
-                new QRCode(qrelem, { 
-                    text: a.nomor_anggota, 
-                    width: 128, 
-                    height: 128, 
-                    correctLevel: QRCode.CorrectLevel.H 
-                });
+                new QRCode(qrelem, { text: a.nomor_anggota, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
             });
             setTimeout(() => window.print(), 1200);
         }
