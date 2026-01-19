@@ -152,12 +152,14 @@
             const user = document.getElementById('userInput').value;
             const pwd = document.getElementById('pwdInput').value;
             const res = await fetch(`${API}/api/login`, { method: 'POST', body: JSON.stringify({user, pwd}) });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                loadBuku(); loadAnggota();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
+            if(res.ok) {
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                    loadBuku(); loadAnggota();
+                } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
+            } else { Swal.fire('Gagal', 'Login gagal', 'error'); }
         }
 
         async function loadBuku() {
@@ -292,9 +294,8 @@
                 area.appendChild(card);
                 
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.innerHTML = ''; // Pastikan bersih
+                qrelem.innerHTML = ''; 
                 
-                // Render High-DPI (128px) lalu dikecilkan CSS ke 50px agar tajam
                 new QRCode(qrelem, { 
                     text: a.nomor_anggota, 
                     width: 128, 
