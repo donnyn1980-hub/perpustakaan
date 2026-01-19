@@ -36,7 +36,7 @@
                 page-break-inside: avoid; overflow: hidden;
             }
             
-            /* QR Container Optimized for Cards */
+            /* QR Container Optimized */
             .qr-card-bottom { 
                 position: absolute; 
                 bottom: 3mm; 
@@ -72,23 +72,6 @@
         table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
         
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; }
-        
-        /* CSS Tambahan untuk teks di atas QR pada Label */
-        .qr-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 110px;
-        }
-        .qr-header-text {
-            font-size: 6pt;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1;
-            margin-bottom: 2px;
-            white-space: pre-line;
-        }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -234,16 +217,15 @@
             items.forEach((kode, i) => {
                 const box = document.createElement('div'); box.className = 'label-tight';
                 box.innerHTML = `
-                    <div class="qr-wrapper">
-                        <div class="qr-header-text">Perpustakaan\nSMAN 2 Cikarang Barat</div>
-                        <div id="ql-${i}" style="width:100px;height:100px;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:110px;">
+                        <div style="font-size:6pt; font-weight:bold; text-align:center; line-height:1; margin-bottom:2px;">Perpustakaan<br>SMAN 2 Cikarang Barat</div>
+                        <div id="ql-${i}" style="width:110px;height:110px;"></div>
                     </div>
                     <div class="flex-1 text-center font-bold text-[18pt] leading-tight">
                         ${kode.split('.').join('<br>')}
                     </div>`;
                 area.appendChild(box);
-                // Ukuran disesuaikan sedikit agar teks di atasnya proporsional
-                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.M });
+                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 110, height: 110 });
             });
             setTimeout(() => window.print(), 1000);
         }
