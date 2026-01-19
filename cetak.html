@@ -149,16 +149,25 @@
         let bukuData = []; let anggotaData = [];
 
         async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            const res = await fetch(`${API}/api/login`, { method: 'POST', body: JSON.stringify({user, pwd}) });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                loadBuku(); loadAnggota();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
+    const user = document.getElementById('user').value;
+    const pwd = document.getElementById('pwd').value;
+    try {
+        const res = await fetch('https://admin-perpus.donnyn1980.workers.dev/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user, pwd })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Lanjut cetak
+        } else {
+            alert('Login Gagal');
         }
+    } catch (err) {
+        console.error("Fetch error:", err);
+        alert('Koneksi ke server gagal/diblokir');
+    }
+}
 
         async function loadBuku() {
             const res = await fetch(`${API}/api/buku`);
