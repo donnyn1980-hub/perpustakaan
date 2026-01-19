@@ -7,7 +7,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS asli tetap utuh */
         @media print {
             .no-print { display: none !important; }
             body { background: white; margin: 0; padding: 0; }
@@ -44,31 +43,44 @@
 
     <div id="main-dashboard" class="hidden no-print min-h-screen">
         <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="font-bold text-blue-800 text-sm">SMAN 2 CIKARANG BARAT</h1>
-            <div class="flex space-x-4">
-                <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2">Buku</button>
-                <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2">Anggota</button>
+            <h1 class="font-bold text-blue-800">PERPUS SMAN 2 CIKBAR</h1>
+            <div class="flex space-x-6">
+                <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2 py-1">Cetak Buku</button>
+                <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2 py-1">Cetak Anggota</button>
             </div>
         </nav>
-        <div id="view-buku" class="p-4">
-            <div class="flex justify-between mb-2">
-                <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-4 py-2 rounded text-xs">LABEL 12</button>
-                <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-4 py-2 rounded text-xs">KARTU BUKU</button>
+
+        <div id="view-buku" class="p-6 max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">Data Buku</h2>
+                <div class="space-x-2">
+                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">CETAK 12 LABEL</button>
+                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU BUKU</button>
+                </div>
             </div>
-            <div class="bg-white rounded border overflow-x-auto">
-                <table class="w-full text-xs">
-                    <thead class="bg-gray-100"><tr><th><input type="checkbox" onchange="toggle('.cb-buku', this)"></th><th>KODE</th><th>JUDUL</th></tr></thead>
-                    <tbody id="list-buku"></tbody>
+            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari buku..." class="search-input">
+            <div class="bg-white rounded-xl border overflow-x-auto">
+                <table class="w-full text-left font-mono text-sm">
+                    <thead class="bg-slate-50 border-b">
+                        <tr><th class="p-4 text-center"><input type="checkbox" onchange="toggle('.cb-buku', this)"></th><th>KODE</th><th>JUDUL</th></tr>
+                    </thead>
+                    <tbody id="list-buku" class="divide-y"></tbody>
                 </table>
             </div>
         </div>
-        
-        <div id="view-anggota" class="hidden p-4">
-            <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-4 py-2 rounded text-xs mb-2">KARTU PINJAM</button>
-            <div class="bg-white rounded border overflow-x-auto">
-                <table class="w-full text-xs">
-                    <thead class="bg-gray-100"><tr><th><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th><th>NO</th><th>NAMA</th></tr></thead>
-                    <tbody id="list-anggota"></tbody>
+
+        <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">Data Anggota</h2>
+                <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold">CETAK KARTU PINJAM</button>
+            </div>
+            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari anggota..." class="search-input">
+            <div class="bg-white rounded-xl border overflow-x-auto">
+                <table class="w-full text-left font-mono text-sm">
+                    <thead class="bg-slate-50 border-b">
+                        <tr><th class="p-4 text-center"><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th><th>NO</th><th>NAMA</th></tr>
+                    </thead>
+                    <tbody id="list-anggota" class="divide-y"></tbody>
                 </table>
             </div>
         </div>
@@ -78,51 +90,49 @@
     <div id="printAreaKartu"></div>
 
     <script>
-        // GANTI URL INI DENGAN URL WORKER ANDA
         const API = "https://admin-perpus.donnyn1980.workers.dev";
         let bukuData = []; let anggotaData = [];
 
-       async function auth() {
-    const u = document.getElementById('userInput').value;
-    const p = document.getElementById('pwdInput').value;
-    
-    // Pastikan URL API tidak diakhiri tanda miring /
-    const API = "https://admin-perpus.donnyn1980.workers.dev";
-
-    try {
-        const response = await fetch(`${API}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user: u, pwd: p })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            loadBuku(); 
-            loadAnggota();
-        } else {
-            Swal.fire('Gagal', result.message || 'Login ditolak', 'error');
+        async function auth() {
+            const user = document.getElementById('userInput').value;
+            const pwd = document.getElementById('pwdInput').value;
+            try {
+                const res = await fetch(`${API}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pwd })
+                });
+                const d = await res.json();
+                if(res.ok && d.success) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                    loadBuku(); loadAnggota();
+                } else {
+                    Swal.fire('Gagal', 'Kredensial salah', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal terhubung ke Worker. Pastikan Worker Online.', 'error');
+            }
         }
-    } catch (err) {
-        // Jika masuk ke sini, berarti browser diblokir CORS atau URL salah
-        console.error(err);
-        Swal.fire('Koneksi Gagal', 'Browser memblokir akses ke Worker. Pastikan Worker sudah di-deploy.', 'error');
-    }
-}
 
         async function loadBuku() {
             const res = await fetch(`${API}/api/buku`);
             bukuData = await res.json();
-            document.getElementById('list-buku').innerHTML = bukuData.map(b => `<tr><td class="text-center"><input type="checkbox" value="${b.kode_buku}" class="cb-buku"></td><td class="p-2">${b.kode_buku}</td><td class="p-2">${b.judul}</td></tr>`).join('');
+            renderBuku(bukuData);
         }
 
         async function loadAnggota() {
             const res = await fetch(`${API}/api/anggota`);
             anggotaData = await res.json();
-            document.getElementById('list-anggota').innerHTML = anggotaData.map(a => `<tr><td class="text-center"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota"></td><td class="p-2">${a.nomor_anggota}</td><td class="p-2">${a.nama_lengkap}</td></tr>`).join('');
+            renderAnggota(anggotaData);
+        }
+
+        function renderBuku(data) {
+            document.getElementById('list-buku').innerHTML = data.map(b => `<tr><td class="p-4 text-center"><input type="checkbox" value="${b.kode_buku}" class="cb-buku"></td><td class="p-4">${b.kode_buku}</td><td class="p-4">${b.judul}</td></tr>`).join('');
+        }
+
+        function renderAnggota(data) {
+            document.getElementById('list-anggota').innerHTML = data.map(a => `<tr><td class="p-4 text-center"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota"></td><td class="p-4">${a.nomor_anggota}</td><td class="p-4">${a.nama_lengkap}</td></tr>`).join('');
         }
 
         function showTab(t) {
@@ -131,10 +141,10 @@
             document.getElementById('tab-buku').classList.toggle('active', t === 'buku');
             document.getElementById('tab-anggota').classList.toggle('active', t === 'anggota');
         }
+
         function toggle(cls, s) { document.querySelectorAll(cls).forEach(c => c.checked = s.checked); }
         function clearPrint() { const l = document.getElementById('printAreaLabel'); const k = document.getElementById('printAreaKartu'); l.innerHTML = ''; k.innerHTML = ''; l.style.display = 'none'; k.style.display = 'none'; }
 
-        // Fungsi cetak (Sama persis dengan kode Anda)
         function cetakLabel12() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
             if(items.length === 0) return; clearPrint();
