@@ -35,22 +35,10 @@
                 padding: 4mm; position: relative; font-family: 'Courier New', monospace;
                 page-break-inside: avoid; overflow: hidden;
             }
-            
-            /* QR Container Optimized */
-            .qr-card-bottom { 
-                position: absolute; 
-                bottom: 3mm; 
-                left: 4mm; 
-                width: 50px; 
-                height: 50px;
-                background: white;
-            }
-            .qr-card-bottom img, .qr-card-bottom canvas { 
-                width: 50px !important; 
-                height: 50px !important; 
-            }
-
+            .qr-card-bottom { position: absolute; bottom: 3mm; left: 4mm; }
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
+            
+            /* IDENTITAS SIMETRIS */
             .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
             .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
@@ -58,13 +46,13 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 33 BARIS */
+        /* TABEL OPTIMIZED HEIGHT */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
             padding: 0px 2px; 
             text-align: center; 
-            height: 16.5px; 
+            height: 16.5px; /* Tinggi baris ditambah agar tabel memanjang ke bawah */
             line-height: 1; 
         }
         table.minimalist th { background-color: #f3f4f6; font-size: 6.5pt; }
@@ -146,31 +134,15 @@
         let bukuData = []; let anggotaData = [];
 
         async function auth() {
-            try {
-                const user = document.getElementById('userInput').value;
-                const pwd = document.getElementById('pwdInput').value;
-                
-                // Menambahkan header Content-Type agar Worker bisa membaca body JSON
-                const res = await fetch(`${API}/api/login`, { 
-                    method: 'POST', 
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({user, pwd}) 
-                });
-                
-                const d = await res.json();
-                if(d.success) {
-                    document.getElementById('login-section').classList.add('hidden');
-                    document.getElementById('main-dashboard').classList.remove('hidden');
-                    loadBuku(); loadAnggota();
-                } else { 
-                    Swal.fire('Gagal', 'Kredensial salah', 'error'); 
-                }
-            } catch (err) {
-                console.error("Login Error:", err);
-                Swal.fire('Error', 'Gagal menghubungi server backend', 'error');
-            }
+            const user = document.getElementById('userInput').value;
+            const pwd = document.getElementById('pwdInput').value;
+            const res = await fetch(`${API}/api/login`, { method: 'POST', body: JSON.stringify({user, pwd}) });
+            const d = await res.json();
+            if(d.success) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                loadBuku(); loadAnggota();
+            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
         }
 
         async function loadBuku() {
@@ -242,11 +214,9 @@
                 const box = document.createElement('div'); box.className = 'label-tight';
                 box.innerHTML = `<div id="ql-${i}" style="width:110px;height:110px;"></div><div class="flex-1 text-center font-bold text-[18pt] leading-tight">${kode.split('.').join('<br>')}</div>`;
                 area.appendChild(box);
-                const qrelem = document.getElementById(`ql-${i}`);
-                qrelem.innerHTML = '';
-                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
+                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 110, height: 110 });
             });
-            setTimeout(() => window.print(), 1000);
+            setTimeout(() => window.print(), 800);
         }
 
         function cetakKartuBuku() {
@@ -270,13 +240,11 @@
                         <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
                         ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
+                    <div id="qrbk-${i}" class="qr-card-bottom" style="width:50px;height:50px;"></div>`;
                 area.appendChild(card);
-                const qrelem = document.getElementById(`qrbk-${i}`);
-                qrelem.innerHTML = '';
-                new QRCode(qrelem, { text: b.kode_buku, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 50, height: 50 });
             });
-            setTimeout(() => window.print(), 1200);
+            setTimeout(() => window.print(), 800);
         }
 
         function cetakKartuPinjam() {
@@ -301,19 +269,11 @@
                         <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
                         ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
-                    <div id="qrs-${i}" class="qr-card-bottom"></div>`;
+                    <div id="qrs-${i}" class="qr-card-bottom" style="width:50px;height:50px;"></div>`;
                 area.appendChild(card);
-                
-                const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.innerHTML = '';
-                new QRCode(qrelem, { 
-                    text: a.nomor_anggota, 
-                    width: 128, 
-                    height: 128, 
-                    correctLevel: QRCode.CorrectLevel.H 
-                });
+                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 50, height: 50 });
             });
-            setTimeout(() => window.print(), 1200);
+            setTimeout(() => window.print(), 800);
         }
     </script>
 </body>
