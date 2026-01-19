@@ -82,24 +82,36 @@
         const API = "https://admin-perpus.donnyn1980.workers.dev";
         let bukuData = []; let anggotaData = [];
 
-        async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            
-            try {
-                const res = await fetch(`${API}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user, pwd })
-                });
-                const d = await res.json();
-                if(res.ok && d.success) {
-                    document.getElementById('login-section').classList.add('hidden');
-                    document.getElementById('main-dashboard').classList.remove('hidden');
-                    loadBuku(); loadAnggota();
-                } else { Swal.fire('Gagal', 'User atau Password salah', 'error'); }
-            } catch (err) { Swal.fire('Error', 'Koneksi ke Worker gagal. Cek CORS!', 'error'); }
+       async function auth() {
+    const u = document.getElementById('userInput').value;
+    const p = document.getElementById('pwdInput').value;
+    
+    // Pastikan URL API tidak diakhiri tanda miring /
+    const API = "https://admin-perpus.donnyn1980.workers.dev";
+
+    try {
+        const response = await fetch(`${API}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: u, pwd: p })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            loadBuku(); 
+            loadAnggota();
+        } else {
+            Swal.fire('Gagal', result.message || 'Login ditolak', 'error');
         }
+    } catch (err) {
+        // Jika masuk ke sini, berarti browser diblokir CORS atau URL salah
+        console.error(err);
+        Swal.fire('Koneksi Gagal', 'Browser memblokir akses ke Worker. Pastikan Worker sudah di-deploy.', 'error');
+    }
+}
 
         async function loadBuku() {
             const res = await fetch(`${API}/api/buku`);
