@@ -52,7 +52,6 @@
 
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
             
-            /* IDENTITAS SIMETRIS */
             .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
             .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
@@ -60,7 +59,6 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 28 BARIS */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
@@ -77,11 +75,11 @@
 <body class="bg-slate-50">
 
     <div id="main-dashboard" class="no-print min-h-screen">
-        <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">P</div>
-                <h1 class="font-bold text-blue-800">SMAN 2 CIKARANG BARAT</h1>
-            </div>
+        <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <h1 class="font-bold text-blue-800 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                CETAK PERPUSTAKAAN
+            </h1>
             <div class="flex space-x-6">
                 <button onclick="showTab('buku')" id="tab-buku" class="tab-btn active px-2 py-1">Cetak Buku</button>
                 <button onclick="showTab('anggota')" id="tab-anggota" class="tab-btn px-2 py-1">Cetak Anggota</button>
@@ -90,45 +88,57 @@
 
         <div id="view-buku" class="p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">Database Buku</h2>
+                <h2 class="text-lg font-bold text-gray-700">Database Buku</h2>
                 <div class="space-x-2">
-                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">CETAK 12 LABEL</button>
-                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700">CETAK KARTU BUKU</button>
+                    <button onclick="loadBuku()" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-300">↻ Refresh</button>
+                    <button onclick="cetakLabel12()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-md">CETAK 12 LABEL</button>
+                    <button onclick="cetakKartuBuku()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 shadow-md">CETAK KARTU BUKU</button>
                 </div>
             </div>
-            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul atau kode buku..." class="search-input">
-            <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
+            <input type="text" id="searchBuku" onkeyup="filterBuku()" placeholder="Cari judul, pengarang, atau kode buku..." class="search-input shadow-sm">
+            <div class="bg-white rounded-xl border overflow-hidden shadow-sm">
                 <table class="w-full text-left font-mono text-sm">
-                    <thead class="bg-slate-50 border-b">
+                    <thead class="bg-slate-100 border-b text-slate-600">
                         <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-buku', this)"></th>
-                            <th class="p-4">KODE PANGGIL</th>
+                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-buku', this)" class="w-4 h-4"></th>
+                            <th class="p-4">KODE BUKU</th>
                             <th class="p-4">JUDUL BUKU</th>
+                            <th class="p-4 hidden md:table-cell">PENGARANG</th>
                         </tr>
                     </thead>
-                    <tbody id="list-buku" class="divide-y"></tbody>
+                    <tbody id="list-buku" class="divide-y">
+                        <tr><td colspan="4" class="p-8 text-center text-gray-500 animate-pulse">Sedang memuat data buku...</td></tr>
+                    </tbody>
                 </table>
             </div>
+            <div id="buku-count" class="mt-2 text-sm text-gray-500 text-right"></div>
         </div>
 
         <div id="view-anggota" class="hidden p-6 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">Database Anggota</h2>
-                <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700">CETAK KARTU PINJAM</button>
+                <h2 class="text-lg font-bold text-gray-700">Database Anggota</h2>
+                <div class="space-x-2">
+                    <button onclick="loadAnggota()" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-300">↻ Refresh</button>
+                    <button onclick="cetakKartuPinjam()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700 shadow-md">CETAK KARTU PINJAM</button>
+                </div>
             </div>
-            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input">
-            <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
+            <input type="text" id="searchAnggota" onkeyup="filterAnggota()" placeholder="Cari nama atau nomor anggota..." class="search-input shadow-sm">
+            <div class="bg-white rounded-xl border overflow-hidden shadow-sm">
                 <table class="w-full text-left font-mono text-sm">
-                    <thead class="bg-slate-50 border-b">
+                    <thead class="bg-slate-100 border-b text-slate-600">
                         <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-anggota', this)"></th>
+                            <th class="p-4 w-12 text-center"><input type="checkbox" onchange="toggle('.cb-anggota', this)" class="w-4 h-4"></th>
                             <th class="p-4">NOMOR ANGGOTA</th>
                             <th class="p-4">NAMA LENGKAP</th>
+                            <th class="p-4">KELAS</th>
                         </tr>
                     </thead>
-                    <tbody id="list-anggota" class="divide-y"></tbody>
+                    <tbody id="list-anggota" class="divide-y">
+                        <tr><td colspan="4" class="p-8 text-center text-gray-500 animate-pulse">Sedang memuat data anggota...</td></tr>
+                    </tbody>
                 </table>
             </div>
+            <div id="anggota-count" class="mt-2 text-sm text-gray-500 text-right"></div>
         </div>
     </div>
 
@@ -136,59 +146,130 @@
     <div id="printAreaKartu"></div>
 
     <script>
-        const API = "https://admin-perpus.donnyn1980.workers.dev";
+        // PERBAIKAN URL: Pastikan ini sesuai dengan domain worker Anda
+        // Saya membersihkan URL yang sebelumnya double (https://https://...)
+        const API = "https://perpustakaan.donnyn1980.workers.dev";
+        
         let bukuData = []; 
         let anggotaData = [];
 
         window.onload = () => {
-            loadBuku();
+            loadBuku(); 
             loadAnggota();
         };
 
         async function loadBuku() {
+            const tbody = document.getElementById('list-buku');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">Memuat data...</td></tr>`;
+            
             try {
                 const res = await fetch(`${API}/api/buku`);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                
                 const d = await res.json();
-                bukuData = d.data || [];
-                renderBuku(bukuData);
-            } catch (e) { console.error("Gagal muat buku", e); }
+                
+                // Sinkronisasi dengan format worker.js: { success: true, data: [...] }
+                if(d.success && Array.isArray(d.data)) {
+                    bukuData = d.data;
+                    renderBuku(bukuData);
+                } else {
+                    throw new Error(d.error || d.msg || "Gagal mengambil format data buku");
+                }
+            } catch (err) {
+                console.error("Error Buku:", err);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 bg-red-50">
+                    <strong>Gagal memuat data buku</strong><br>
+                    <small>${err.message}</small><br>
+                    <button onclick="loadBuku()" class="mt-2 underline text-blue-600">Coba Lagi</button>
+                </td></tr>`;
+                Swal.fire('Error Koneksi', 'Gagal terhubung ke server perpustakaan. Pastikan URL Worker benar.', 'error');
+            }
         }
 
         async function loadAnggota() {
+            const tbody = document.getElementById('list-anggota');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">Memuat data...</td></tr>`;
+
             try {
                 const res = await fetch(`${API}/api/anggota`);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                
                 const d = await res.json();
-                anggotaData = d.data || [];
-                renderAnggota(anggotaData);
-            } catch (e) { console.error("Gagal muat anggota", e); }
+                
+                // Sinkronisasi dengan format worker.js
+                if(d.success && Array.isArray(d.data)) {
+                    anggotaData = d.data;
+                    renderAnggota(anggotaData);
+                } else {
+                    throw new Error(d.error || d.msg || "Gagal mengambil format data anggota");
+                }
+            } catch (err) {
+                console.error("Error Anggota:", err);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 bg-red-50">
+                    <strong>Gagal memuat data anggota</strong><br>
+                    <small>${err.message}</small><br>
+                    <button onclick="loadAnggota()" class="mt-2 underline text-blue-600">Coba Lagi</button>
+                </td></tr>`;
+            }
         }
 
         function renderBuku(data) {
-            document.getElementById('list-buku').innerHTML = data.map(b => `
-                <tr class="hover:bg-blue-50">
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5"></td>
-                    <td class="p-4 font-bold text-blue-700">${b.kode_buku}</td>
-                    <td class="p-4 font-medium uppercase">${b.judul}</td>
+            const tbody = document.getElementById('list-buku');
+            if(!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">Data Buku Kosong</td></tr>`;
+                document.getElementById('buku-count').innerText = '0 data';
+                return;
+            }
+            
+            // Limit render to 500 first items for performance if needed, or render all
+            // For printing selection, we render all but be mindful of large DOM
+            tbody.innerHTML = data.map(b => `
+                <tr class="hover:bg-blue-50 transition-colors">
+                    <td class="p-4 text-center border-r"><input type="checkbox" value="${b.kode_buku}" class="cb-buku w-5 h-5 cursor-pointer"></td>
+                    <td class="p-4 font-bold text-blue-700 font-mono whitespace-nowrap">${b.kode_buku}</td>
+                    <td class="p-4 font-semibold text-gray-700">${b.judul}</td>
+                    <td class="p-4 text-gray-500 hidden md:table-cell">${b.pengarang || '-'}</td>
                 </tr>`).join('');
+            
+            document.getElementById('buku-count').innerText = `Total: ${data.length} buku`;
         }
 
         function renderAnggota(data) {
-            document.getElementById('list-anggota').innerHTML = data.map(a => `
-                <tr class="hover:bg-orange-50">
-                    <td class="p-4 text-center border-r"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota w-5 h-5"></td>
-                    <td class="p-4 font-bold">${a.nomor_anggota}</td>
-                    <td class="p-4 uppercase font-medium">${a.nama_lengkap}</td>
+            const tbody = document.getElementById('list-anggota');
+            if(!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">Data Anggota Kosong</td></tr>`;
+                document.getElementById('anggota-count').innerText = '0 data';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(a => `
+                <tr class="hover:bg-orange-50 transition-colors">
+                    <td class="p-4 text-center border-r"><input type="checkbox" value="${a.nomor_anggota}" class="cb-anggota w-5 h-5 cursor-pointer"></td>
+                    <td class="p-4 font-bold font-mono text-orange-700">${a.nomor_anggota}</td>
+                    <td class="p-4 uppercase font-semibold text-gray-700">${a.nama_lengkap}</td>
+                    <td class="p-4 text-gray-600">${a.kelas || '-'}</td>
                 </tr>`).join('');
+            
+            document.getElementById('anggota-count').innerText = `Total: ${data.length} anggota`;
         }
 
         function filterBuku() {
             const val = document.getElementById('searchBuku').value.toLowerCase();
-            renderBuku(bukuData.filter(b => b.judul.toLowerCase().includes(val) || b.kode_buku.toLowerCase().includes(val)));
+            const filtered = bukuData.filter(b => 
+                (b.judul && b.judul.toLowerCase().includes(val)) || 
+                (b.kode_buku && b.kode_buku.toLowerCase().includes(val)) ||
+                (b.pengarang && b.pengarang.toLowerCase().includes(val))
+            );
+            renderBuku(filtered);
         }
 
         function filterAnggota() {
             const val = document.getElementById('searchAnggota').value.toLowerCase();
-            renderAnggota(anggotaData.filter(a => a.nama_lengkap.toLowerCase().includes(val) || a.nomor_anggota.toLowerCase().includes(val)));
+            const filtered = anggotaData.filter(a => 
+                (a.nama_lengkap && a.nama_lengkap.toLowerCase().includes(val)) || 
+                (a.nomor_anggota && a.nomor_anggota.toLowerCase().includes(val))
+            );
+            renderAnggota(filtered);
         }
 
         function showTab(t) {
@@ -209,34 +290,56 @@
 
         function cetakLabel12() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Info', 'Pilih buku terlebih dahulu', 'info'); return; }
+            
+            // Konfirmasi jika jumlah banyak
+            if(items.length > 12) {
+                Swal.fire({
+                    title: 'Banyak data terpilih',
+                    text: `Anda akan mencetak ${items.length} label. Lanjutkan?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Cetak'
+                }).then((result) => {
+                    if (result.isConfirmed) processCetakLabel(items);
+                });
+            } else {
+                processCetakLabel(items);
+            }
+        }
+
+        function processCetakLabel(items) {
             clearPrint();
             const area = document.getElementById('printAreaLabel');
             area.style.display = 'grid'; area.className = 'print-label-grid';
-
+            
             items.forEach((kode, i) => {
                 const box = document.createElement('div'); box.className = 'label-tight';
+                // Format kode buku yang panjang dipisah dengan <br> agar muat di label
+                const formattedKode = kode.split('.').join('<br>');
+                
                 box.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:110px;">
-                        <div style="font-size:6pt; font-weight:bold; text-align:center; line-height:1; margin-bottom:2px;">Perpustakaan<br>SMAN 2 Cikarang Barat</div>
-                        <div id="ql-${i}" style="width:110px;height:110px;"></div>
-                    </div>
-                    <div class="flex-1 text-center font-bold text-[18pt] leading-tight">
-                        ${kode.split('.').join('<br>')}
-                    </div>`;
+                    <div id="ql-${i}" style="width:110px;height:110px;"></div>
+                    <div class="flex-1 text-center font-bold text-[18pt] leading-tight font-mono ml-2">${formattedKode}</div>
+                `;
                 area.appendChild(box);
-                new QRCode(document.getElementById(`ql-${i}`), { text: kode, width: 110, height: 110 });
+                // Generate QR Code
+                new QRCode(document.getElementById(`ql-${i}`), { 
+                    text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M 
+                });
             });
+            
             setTimeout(() => window.print(), 1000);
         }
 
         function cetakKartuBuku() {
             const items = Array.from(document.querySelectorAll('.cb-buku:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Info', 'Pilih buku terlebih dahulu', 'info'); return; }
+            
             clearPrint();
             const area = document.getElementById('printAreaKartu');
             area.style.display = 'grid'; area.className = 'print-card-grid';
-
+            
             items.forEach((kode, i) => {
                 const b = bukuData.find(x => x.kode_buku === kode);
                 if(!b) return;
@@ -246,8 +349,9 @@
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
                     <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px; text-decoration:underline;">KARTU BUKU</div>
                     <table class="info-table">
-                        <tr><td width="25%">Judul</td><td width="2%">:</td><td>${b.judul}</td></tr>
+                        <tr><td width="25%">Judul</td><td width="2%">:</td><td>${b.judul.substring(0, 50)}</td></tr>
                         <tr><td>No Panggil</td><td>:</td><td>${b.kode_buku}</td></tr>
+                        <tr><td>Pengarang</td><td>:</td><td>${b.pengarang || '-'}</td></tr>
                     </table>
                     <table class="minimalist">
                         <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
@@ -255,18 +359,19 @@
                     </table>
                     <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(document.getElementById(`qrbk-${i}`), { text: b.kode_buku, width: 128, height: 128 });
             });
             setTimeout(() => window.print(), 1200);
         }
 
         function cetakKartuPinjam() {
             const items = Array.from(document.querySelectorAll('.cb-anggota:checked')).map(c => c.value);
-            if(items.length === 0) return;
+            if(items.length === 0) { Swal.fire('Info', 'Pilih anggota terlebih dahulu', 'info'); return; }
+            
             clearPrint();
             const area = document.getElementById('printAreaKartu');
             area.style.display = 'grid'; area.className = 'print-card-grid';
-
+            
             items.forEach((nomor, i) => {
                 const a = anggotaData.find(x => x.nomor_anggota === nomor);
                 if(!a) return;
@@ -286,7 +391,7 @@
                     </table>
                     <div id="qrs-${i}" class="qr-card-bottom"></div>`;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(document.getElementById(`qrs-${i}`), { text: a.nomor_anggota, width: 128, height: 128 });
             });
             setTimeout(() => window.print(), 1200);
         }
