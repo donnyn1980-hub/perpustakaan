@@ -77,18 +77,7 @@
 </head>
 <body class="bg-slate-50">
 
-    <div id="login-section" class="flex items-center justify-center min-h-screen no-print">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-700 uppercase">Admin Login</h2>
-            <div class="space-y-4">
-                <input type="text" id="userInput" placeholder="User" class="w-full p-4 border rounded-xl outline-none">
-                <input type="password" id="pwdInput" placeholder="Password" class="w-full p-4 border rounded-xl outline-none">
-                <button onclick="auth()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl">MASUK</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="main-dashboard" class="hidden no-print min-h-screen">
+    <div id="main-dashboard" class="no-print min-h-screen">
         <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
             <h1 class="font-bold text-blue-800">PERPUS SMAN 2 CIKARANG BARAT</h1>
             <div class="flex space-x-6">
@@ -148,17 +137,11 @@
         const API = "https://admin-perpus.donnyn1980.workers.dev";
         let bukuData = []; let anggotaData = [];
 
-        async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            const res = await fetch(`${API}/api/login`, { method: 'POST', body: JSON.stringify({user, pwd}) });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                loadBuku(); loadAnggota();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
-        }
+        // Langsung muat data saat halaman dibuka (Login dihapus)
+        window.onload = () => {
+            loadBuku(); 
+            loadAnggota();
+        };
 
         async function loadBuku() {
             const res = await fetch(`${API}/api/buku`);
