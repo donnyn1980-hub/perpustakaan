@@ -149,15 +149,28 @@
         let bukuData = []; let anggotaData = [];
 
         async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            const res = await fetch(`${API}/api/login`, { method: 'POST', body: JSON.stringify({user, pwd}) });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                loadBuku(); loadAnggota();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
+            try {
+                const user = document.getElementById('userInput').value;
+                const pwd = document.getElementById('pwdInput').value;
+                
+                const res = await fetch(`${API}/api/login`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({user, pwd}) 
+                });
+                
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                    loadBuku(); loadAnggota();
+                } else { 
+                    Swal.fire('Gagal', 'Kredensial salah', 'error'); 
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                Swal.fire('Error', 'Gagal menghubungi server backend', 'error');
+            }
         }
 
         async function loadBuku() {
@@ -231,7 +244,7 @@
                 area.appendChild(box);
                 const qrelem = document.getElementById(`ql-${i}`);
                 qrelem.innerHTML = '';
-                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.Level.M });
+                new QRCode(qrelem, { text: kode, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M });
             });
             setTimeout(() => window.print(), 1000);
         }
@@ -250,11 +263,11 @@
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
                     <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU BUKU</div>
                     <table class="info-table">
-                        <tr><td width="30%">Judul</td><td width="5%">:</td><td>${b.judul}</td></tr>
+                        <tr><td width=\"30%\">Judul</td><td width=\"5%\">:</td><td>${b.judul}</td></tr>
                         <tr><td>No Panggil</td><td>:</td><td>${b.kode_buku}</td></tr>
                     </table>
                     <table class="minimalist">
-                        <tr><th width="5%">No</th><th width="45%">Peminjam</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
+                        <tr><th width=\"5%\">No</th><th width=\"45%\">Peminjam</th><th width=\"25%\">Tgl<br>Pinjam</th><th width=\"25%\">Tgl<br>Kembali</th></tr>
                         ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
                     <div id="qrbk-${i}" class="qr-card-bottom"></div>`;
@@ -280,12 +293,12 @@
                     <div class="header-kartu">PERPUSTAKAAN<br>SMAN 2 CIKARANG BARAT</div>
                     <div style="text-align:center; font-weight:bold; font-size:9pt; margin-bottom:2px;">KARTU PINJAMAN BUKU</div>
                     <table class="info-table">
-                        <tr><td width="30%">Nama</td><td width="5%">:</td><td>${a.nama_lengkap}</td></tr>
+                        <tr><td width=\"30%\">Nama</td><td width=\"5%\">:</td><td>${a.nama_lengkap}</td></tr>
                         <tr><td>No. Anggota</td><td>:</td><td>${a.nomor_anggota}</td></tr>
                         <tr><td>Kelas</td><td>:</td><td>${a.kelas}</td></tr>
                     </table>
                     <table class="minimalist">
-                        <tr><th width="5%">No</th><th width="45%">Judul Buku</th><th width="25%">Tgl<br>Pinjam</th><th width="25%">Tgl<br>Kembali</th></tr>
+                        <tr><th width=\"5%\">No</th><th width=\"45%\">Judul Buku</th><th width=\"25%\">Tgl<br>Pinjam</th><th width=\"25%\">Tgl<br>Kembali</th></tr>
                         ${Array(33).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('')}
                     </table>
                     <div id="qrs-${i}" class="qr-card-bottom"></div>`;
