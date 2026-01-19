@@ -148,9 +148,21 @@
         const API = "https://admin-perpus.donnyn1980.workers.dev";
         let bukuData = []; let anggotaData = [];
 
-        async function auth() {
-    const user = document.getElementById('user').value;
-    const pwd = document.getElementById('pwd').value;
+  async function auth() {
+    const userElement = document.getElementById('user');
+    const pwdElement = document.getElementById('pwd');
+
+    // Validasi apakah elemen ditemukan sebelum mengambil .value
+    if (!userElement || !pwdElement) {
+        console.error("Elemen input login tidak ditemukan di HTML!");
+        alert("Terjadi kesalahan teknis pada form login.");
+        return;
+    }
+
+    const user = userElement.value;
+    const pwd = pwdElement.value;
+
+    // Lanjutkan proses fetch ke Worker...
     try {
         const res = await fetch('https://admin-perpus.donnyn1980.workers.dev/api/login', {
             method: 'POST',
@@ -158,14 +170,9 @@
             body: JSON.stringify({ user, pwd })
         });
         const data = await res.json();
-        if (data.success) {
-            // Lanjut cetak
-        } else {
-            alert('Login Gagal');
-        }
+        // ... sisa kode
     } catch (err) {
-        console.error("Fetch error:", err);
-        alert('Koneksi ke server gagal/diblokir');
+        console.error(err);
     }
 }
 
