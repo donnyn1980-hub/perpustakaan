@@ -12,7 +12,6 @@
             body { background: white; margin: 0; padding: 0; }
             @page { size: A4 landscape; margin: 5mm; }
 
-            /* LABEL 12 GRID (4x3) */
             .print-label-grid { 
                 display: grid !important; 
                 grid-template-columns: repeat(4, 1fr); 
@@ -24,7 +23,6 @@
                 align-items: center; padding: 2mm; height: 64mm; page-break-inside: avoid;
             }
 
-            /* KARTU 3 GRID */
             .print-card-grid { 
                 display: grid !important; 
                 grid-template-columns: repeat(3, 1fr); 
@@ -36,7 +34,6 @@
                 page-break-inside: avoid; overflow: hidden;
             }
             
-            /* QR Container Optimized */
             .qr-card-bottom { 
                 position: absolute; 
                 bottom: 3mm; 
@@ -45,15 +42,12 @@
                 height: 50px;
                 background: white;
             }
-            /* Memastikan hasil render canvas/img tajam dan pas di 50px */
             .qr-card-bottom img, .qr-card-bottom canvas { 
                 width: 50px !important; 
                 height: 50px !important; 
             }
 
             .header-kartu { text-align: center; font-weight: bold; border-bottom: 2px double black; margin-bottom: 4px; font-size: 8.5pt; line-height: 1.1; }
-            
-            /* IDENTITAS SIMETRIS */
             .info-table { width: 100%; font-size: 8pt; margin-bottom: 3px; border: none; line-height: 1.1; }
             .info-table td { border: none !important; padding: 0 !important; text-align: left !important; vertical-align: top; }
         }
@@ -61,7 +55,6 @@
         #printAreaLabel, #printAreaKartu { display: none; }
         .tab-btn.active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
         
-        /* TABEL 33 BARIS */
         table.minimalist { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 7.5pt; }
         table.minimalist th, table.minimalist td { 
             border: 1px solid black; 
@@ -149,19 +142,29 @@
         let bukuData = []; let anggotaData = [];
 
         async function auth() {
-            const user = document.getElementById('userInput').value;
-            const pwd = document.getElementById('pwdInput').value;
-            const res = await fetch(`${API}/api/login`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({user, pwd}) 
-            });
-            const d = await res.json();
-            if(d.success) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                loadBuku(); loadAnggota();
-            } else { Swal.fire('Gagal', 'Kredensial salah', 'error'); }
+            try {
+                const user = document.getElementById('userInput').value;
+                const pwd = document.getElementById('pwdInput').value;
+                
+                // Menambahkan header Content-Type agar Worker bisa membaca JSON
+                const res = await fetch(`${API}/api/login`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({user, pwd}) 
+                });
+                
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                    loadBuku(); loadAnggota();
+                } else { 
+                    Swal.fire('Gagal', 'Kredensial salah', 'error'); 
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Gagal menghubungi server backend', 'error');
+            }
         }
 
         async function loadBuku() {
@@ -296,9 +299,7 @@
                 area.appendChild(card);
                 
                 const qrelem = document.getElementById(`qrs-${i}`);
-                qrelem.innerHTML = ''; // Pastikan bersih
-                
-                // Render High-DPI (128px) lalu dikecilkan CSS ke 50px agar tajam
+                qrelem.innerHTML = '';
                 new QRCode(qrelem, { 
                     text: a.nomor_anggota, 
                     width: 128, 
